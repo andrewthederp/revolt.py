@@ -69,7 +69,7 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
             Raises if the context is not from a server
         """
         if not self.server_id:
-            raise LookupError
+            return None
 
         return self.state.get_server(self.server_id)
 

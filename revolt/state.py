@@ -39,30 +39,19 @@ class State:
         self.global_emojis: list[Emoji] = []
 
     def get_user(self, id: str) -> User:
-        try:
-            return self.users[id]
-        except KeyError:
-            raise LookupError from None
+        return self.users.get(id)
 
     def get_member(self, server_id: str, member_id: str) -> Member:
         server = self.servers[server_id]
         return server.get_member(member_id)
 
     def get_channel(self, id: str) -> Channel:
-        try:
-            return self.channels[id]
-        except KeyError:
-            raise LookupError from None
+            return self.channels.get(id)
 
     def get_server(self, id: str) -> Server:
-        try:
-            return self.servers[id]
-        except KeyError:
-            raise LookupError from None
+        return self.servers.get(id)
 
     def add_user(self, payload: UserPayload) -> User:
-
-
         user = User(payload, self)
 
         if payload.get("relationship") == "User":

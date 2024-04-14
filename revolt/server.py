@@ -245,10 +245,7 @@ class Server(Ulid):
         :class:`Member`
             The member
         """
-        try:
-            return self._members[member_id]
-        except KeyError:
-            raise LookupError from None
+        return self._members.get(member_id)
 
     def get_channel(self, channel_id: str) -> Channel:
         """Gets a channel from the cache
