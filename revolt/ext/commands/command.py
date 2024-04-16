@@ -184,20 +184,9 @@ class Command(Generic[ClientT_Co_D]):
                 context.kwargs[parameter.name] = arg
 
             elif parameter.kind == parameter.VAR_POSITIONAL:
-                num = 0
-                while True:
-                    try:
-                        arg = await self.convert_argument(context.view.get_next_word(), parameter, context)
-                        context.args.append(arg)
-                        num += 1
-                    except StopIteration:
-                        break
-
-                if num is 0:
-                    if parameter.default is not parameter.empty:
-                        context.args.append(parameter.default)
-                    else:
-                        raise MissingRequiredArgument(parameter.name)
+                with suppress(StopIteration):
+                    while True:
+                        context.args.append(await self.convert_argument(context.view.get_next_word(), parameter, context))
 
             elif parameter.kind in (parameter.POSITIONAL_OR_KEYWORD, parameter.POSITIONAL_ONLY):
                 try:
