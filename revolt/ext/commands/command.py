@@ -9,7 +9,7 @@ from typing_extensions import ParamSpec
 
 from revolt.utils import maybe_coroutine
 
-from .errors import CommandOnCooldown, InvalidLiteralArgument, UnionConverterError
+from .errors import CommandOnCooldown, InvalidLiteralArgument, UnionConverterError, MissingRequiredArgument
 from .utils import ClientT_Co_D, evaluate_parameters, ClientT_Co
 from .cooldown import BucketType, CooldownMapping
 
@@ -26,6 +26,7 @@ __all__: tuple[str, ...] = (
 
 NoneType: type[None] = type(None)
 P = ParamSpec("P")
+
 
 class Command(Generic[ClientT_Co_D]):
     """Class for holding info about a command.
@@ -122,7 +123,7 @@ class Command(Generic[ClientT_Co_D]):
         return func
 
     async def _default_error_handler(self, ctx: Context[ClientT_Co_D], error: Exception):
-        traceback.print_exception(type(error), error, error.__traceback__)
+        ctx.client.dispatch("command_error", ctx, error)
 
     @classmethod
     async def handle_origin(cls, context: Context[ClientT_Co_D], origin: Any, annotation: Any, arg: str) -> Any:
@@ -152,9 +153,17 @@ class Command(Generic[ClientT_Co_D]):
                 raise InvalidLiteralArgument(arg)
 
     @classmethod
-    async def convert_argument(cls, arg: str, annotation: Any, context: Context[ClientT_Co_D]) -> Any:
+    async def convert_argument(cls, arg: str, param: inspect.Parameter, context: Context[ClientT_Co_D]) -> Any:
+        annotation = param.annotation
+
+        if arg == "":
+            if param.default is not param.empty:
+                return param.default
+            else:
+                raise MissingRequiredArgument(param.name)
+
         if annotation is not inspect.Signature.empty:
-            if annotation is str:  # no converting is needed - its already a string
+            if annotation is str:  # no converting is needed - it's already a string
                 return arg
 
             origin: Any
@@ -170,31 +179,36 @@ class Command(Generic[ClientT_Co_D]):
 
         for parameter in self.parameters[2:]:
             if parameter.kind == parameter.KEYWORD_ONLY:
-                try:
-                    arg = await self.convert_argument(context.view.get_rest(), parameter.annotation, context)
-                except StopIteration:
-                    if parameter.default is not parameter.empty:
-                        arg = parameter.default
-                    else:
-                        raise
-
+                string = context.view.get_rest()
+                arg = await self.convert_argument(string, parameter, context)
                 context.kwargs[parameter.name] = arg
 
             elif parameter.kind == parameter.VAR_POSITIONAL:
-                with suppress(StopIteration):
-                    while True:
-                        context.args.append(await self.convert_argument(context.view.get_next_word(), parameter.annotation, context))
+                num = 0
+                while True:
+                    try:
+                        arg = await self.convert_argument(context.view.get_next_word(), parameter, context)
+                        context.args.append(arg)
+                        num += 1
+                    except StopIteration:
+                        break
 
-            elif parameter.kind == parameter.POSITIONAL_OR_KEYWORD:
+                if num is 0:
+                    if parameter.default is not parameter.empty:
+                        context.args.append(parameter.default)
+                    else:
+                        raise MissingRequiredArgument(parameter.name)
+
+            elif parameter.kind in (parameter.POSITIONAL_OR_KEYWORD, parameter.POSITIONAL_ONLY):
                 try:
                     rest = context.view.get_next_word()
-                    arg = await self.convert_argument(rest, parameter.annotation, context)
+                    arg = await self.convert_argument(rest, parameter, context)
                 except StopIteration:
                     if parameter.default is not parameter.empty:
                         arg = parameter.default
                         context.view.undo()
                     else:
-                        raise
+                        raise MissingRequiredArgument(parameter.name)
 
                 context.args.append(arg)
 
