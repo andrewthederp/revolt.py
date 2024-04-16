@@ -242,9 +242,8 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
 
         context_cls = self.get_context(message)
 
-        try:
-            command = self.get_command(command_name)
-        except KeyError:
+        command = self.get_command(command_name)
+        if not command:
             context = context_cls(None, command_name, view, message, self)
             return self.dispatch("command_error", context, CommandNotFound(command_name))
 
@@ -265,7 +264,6 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
             return output
         except Exception as e:
             await command._error_handler(command.cog or self, context, e)
-            self.dispatch("command_error", context, e)
 
     async def on_command_error(self, ctx: Context[Self], error: Exception, /) -> None:
         traceback.print_exception(type(error), error, error.__traceback__)
