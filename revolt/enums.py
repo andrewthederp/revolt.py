@@ -17,6 +17,7 @@ __all__ = (
     "EmbedType"
 )
 
+
 class ChannelType(enum.Enum):
     saved_messages = "SavedMessages"
     direct_message = "DirectMessage"
@@ -24,12 +25,14 @@ class ChannelType(enum.Enum):
     text_channel = "TextChannel"
     voice_channel = "VoiceChannel"
 
+
 class PresenceType(enum.Enum):
     busy = "Busy"
     idle = "Idle"
     invisible = "Invisible"
     online = "Online"
     focus = "Focus"
+
 
 class RelationshipType(enum.Enum):
     blocked = "Blocked"
@@ -40,6 +43,7 @@ class RelationshipType(enum.Enum):
     outgoing_friend_request = "Outgoing"
     user = "User"
 
+
 class AssetType(enum.Enum):
     image = "Image"
     video = "Video"
@@ -47,10 +51,12 @@ class AssetType(enum.Enum):
     audio = "Audio"
     file = "File"
 
+
 class SortType(enum.Enum):
     latest = "Latest"
     oldest = "Oldest"
     relevance = "Relevance"
+
 
 class EmbedType(enum.Enum):
     website = "Website"

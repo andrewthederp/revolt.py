@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 __all__ = ("Embed", "WebsiteEmbed", "ImageEmbed", "TextEmbed", "NoneEmbed", "to_embed", "SendableEmbed")
 
+
 class WebsiteEmbed:
     type = EmbedType.website
 
@@ -34,6 +35,7 @@ class WebsiteEmbed:
         self.icon_url: str | None = embed.get("icon_url")
         self.colour: str | None = embed.get("colour")
 
+
 class ImageEmbed:
     type: EmbedType = EmbedType.image
 
@@ -42,6 +44,7 @@ class ImageEmbed:
         self.width: int = image.get("width")
         self.height: int = image.get("height")
         self.size: str = image.get("size")
+
 
 class TextEmbed:
     type: EmbedType = EmbedType.text
@@ -61,10 +64,13 @@ class TextEmbed:
 
         self.colour: str | None = embed.get("colour")
 
+
 class NoneEmbed:
     type: EmbedType = EmbedType.none
 
+
 Embed = Union[WebsiteEmbed, ImageEmbed, TextEmbed, NoneEmbed]
+
 
 def to_embed(payload: EmbedPayload, state: State) -> Embed:
     if payload["type"] == "Website":
@@ -76,6 +82,7 @@ def to_embed(payload: EmbedPayload, state: State) -> Embed:
     else:
         return NoneEmbed()
 
+
 class EmbedParameters(TypedDict):
     title: NotRequired[str]
     description: NotRequired[str]
@@ -83,6 +90,7 @@ class EmbedParameters(TypedDict):
     icon_url: NotRequired[str]
     colour: NotRequired[str]
     url: NotRequired[str]
+
 
 class SendableEmbed:
     """

@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 __all__ = ("State",)
 
+
 class State:
     __slots__ = ("http", "api_info", "max_messages", "users", "channels", "servers", "messages", "global_emojis", "user_id", "me")
 
@@ -38,18 +39,23 @@ class State:
         self.messages: deque[Message] = deque()
         self.global_emojis: list[Emoji] = []
 
-    def get_user(self, id: str) -> User:
+    def get_user(self, id: str) -> Optional[User]:
         return self.users.get(id)
 
-    def get_member(self, server_id: str, member_id: str) -> Member:
+    def get_member(self, server_id: str, member_id: str) -> Optional[Member]:
         server = self.servers[server_id]
         return server.get_member(member_id)
 
-    def get_channel(self, id: str) -> Channel:
-            return self.channels.get(id)
+    def get_channel(self, id: str) -> Optional[Channel]:
+        return self.channels.get(id)
 
-    def get_server(self, id: str) -> Server:
+    def get_server(self, id: str) -> Optional[Server]:
         return self.servers.get(id)
+
+    def get_message(self, message_id: str) -> Optional[Message]:
+        for msg in self.messages:
+            if msg.id == message_id:
+                return msg
 
     def add_user(self, payload: UserPayload) -> User:
         user = User(payload, self)
@@ -93,13 +99,6 @@ class State:
             self.global_emojis.append(emoji)
 
         return emoji
-
-    def get_message(self, message_id: str) -> Message:
-        for msg in self.messages:
-            if msg.id == message_id:
-                return msg
-
-        raise LookupError
 
     async def fetch_server_members(self, server_id: str) -> None:
         data = await self.http.fetch_members(server_id)

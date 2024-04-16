@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 __all__ = ("Emoji",)
 
+
 class Emoji(Ulid):
     """Represents a custom emoji.
 

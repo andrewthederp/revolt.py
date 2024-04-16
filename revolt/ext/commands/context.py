@@ -61,13 +61,7 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
 
     @property
     def server(self) -> revolt.Server:
-        """:class:`Server` The server this context belongs too
-
-        Raises
-        -------
-        :class:`LookupError`
-            Raises if the context is not from a server
-        """
+        """:class:`Server` The server this context belongs to"""
         if not self.server_id:
             return None
 

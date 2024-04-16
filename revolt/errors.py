@@ -7,20 +7,26 @@ __all__ = (
     "Forbidden",
 )
 
+
 class RevoltError(Exception):
-    "Base exception for revolt"
+    """Base exception for revolt"""
+
 
 class HTTPError(RevoltError):
-    "Base exception for http errors"
+    """Base exception for http errors"""
+
 
 class ServerError(RevoltError):
-    "Internal server error"
+    """Internal server error"""
+
 
 class FeatureDisabled(RevoltError):
-    "Base class for any feature disabled errors"
+    """Base class for any feature disabled errors"""
+
 
 class AutumnDisabled(FeatureDisabled):
-    "The autumn feature is disabled"
+    """The autumn feature is disabled"""
+
 
 class Forbidden(HTTPError):
-    "Missing permissions"
+    """Missing permissions"""

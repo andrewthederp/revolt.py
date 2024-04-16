@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from .message import Message
     from .role import Role
     from .server import Server
+    from .category import Category
     from .state import State
     from .types import Channel as ChannelPayload
     from .types import DMChannel as DMChannelPayload
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
     from .user import User
 
 __all__ = ("DMChannel", "GroupDMChannel", "SavedMessageChannel", "TextChannel", "VoiceChannel", "Channel", "ServerChannel")
+
 
 class EditableChannel:
     __slots__ = ()
@@ -51,9 +53,9 @@ class EditableChannel:
         """
         remove: list[str] = []
 
-        if kwargs.get("icon", Missing) == None:
+        if kwargs.get("icon", Missing) is None:
             remove.append("Icon")
-        elif kwargs.get("description", Missing) == None:
+        elif kwargs.get("description", Missing) is None:
             remove.append("Description")
 
         if icon := kwargs.get("icon"):
@@ -64,6 +66,7 @@ class EditableChannel:
             kwargs["owner"] = owner.id
 
         await self.state.http.edit_channel(self.id, remove, kwargs)
+
 
 class Channel(Ulid):
     """Base class for all channels
@@ -84,6 +87,7 @@ class Channel(Ulid):
         self.id: str = data["_id"]
         self.channel_type: ChannelType = ChannelType(data["channel_type"])
         self.server_id: Optional[str] = None
+        self._category: Optional[Category] = None
 
     async def _get_channel_id(self) -> str:
         return self.id
@@ -96,16 +100,10 @@ class Channel(Ulid):
         await self.state.http.close_channel(self.id)
 
     @property
-    def server(self) -> Server:
-        """:class:`Server` The server this voice channel belongs too
-
-        Raises
-        -------
-        :class:`LookupError`
-            Raises if the channel is not part of a server
-        """
+    def server(self) -> Optional[Server]:
+        """:class:`Server` The server this channel belongs to, if any"""
         if not self.server_id:
-            raise LookupError
+            return None
 
         return self.state.get_server(self.server_id)
 
@@ -119,6 +117,7 @@ class SavedMessageChannel(Channel, Messageable):
     """The Saved Message Channel"""
     def __init__(self, data: SavedMessagesPayload, state: State):
         super().__init__(data, state)
+
 
 class DMChannel(Channel, Messageable):
     """A DM channel
@@ -141,7 +140,7 @@ class DMChannel(Channel, Messageable):
     def recipients(self) -> tuple[User, User]:
         a, b = self.recipient_ids
 
-        return (self.state.get_user(a), self.state.get_user(b))
+        return self.state.get_user(a), self.state.get_user(b)
 
     @property
     def recipient(self) -> User:
@@ -158,13 +157,14 @@ class DMChannel(Channel, Messageable):
 
         Returns
         --------
-        :class:`Message` the last message in the channel
+        :class:`Optional[Message]` the last message in the channel if any
         """
 
         if not self.last_message_id:
-            raise LookupError
+            return None
 
         return self.state.get_message(self.last_message_id)
+
 
 class GroupDMChannel(Channel, Messageable, EditableChannel):
     """A group DM channel
@@ -239,13 +239,14 @@ class GroupDMChannel(Channel, Messageable, EditableChannel):
 
         Returns
         --------
-        :class:`Message` the last message in the channel
+        :class:`Optional[Message]` the last message in the channel
         """
 
         if not self.last_message_id:
-            raise LookupError
+            return None
 
         return self.state.get_message(self.last_message_id)
+
 
 class ServerChannel(Channel):
     """Base class for all guild channels
@@ -337,6 +338,7 @@ class ServerChannel(Channel):
         if default_permissions is not None:
             self.default_permissions = PermissionsOverwrite._from_overwrite(default_permissions)
 
+
 class TextChannel(ServerChannel, Messageable, EditableChannel):
     """A text channel
 
@@ -371,18 +373,19 @@ class TextChannel(ServerChannel, Messageable, EditableChannel):
         return self.id
 
     @property
-    def last_message(self) -> Message:
+    def last_message(self) -> Optional[Message]:
         """Gets the last message from the channel, shorthand for `client.get_message(channel.last_message_id)`
 
         Returns
         --------
-        :class:`Message` the last message in the channel
+        :class:`Optional[Message]` the last message in the channel
         """
 
         if not self.last_message_id:
-            raise LookupError
+            return None
 
         return self.state.get_message(self.last_message_id)
+
 
 class VoiceChannel(ServerChannel, EditableChannel):
     """A voice channel

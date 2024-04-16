@@ -24,20 +24,24 @@ if TYPE_CHECKING:
 
 __all__ = ("User", "Status", "Relation", "UserProfile")
 
+
 class Relation(NamedTuple):
     """A namedtuple representing a relation between the bot and a user"""
     type: RelationshipType
     user: User
+
 
 class Status(NamedTuple):
     """A namedtuple representing a users status"""
     text: Optional[str]
     presence: Optional[PresenceType]
 
+
 class UserProfile(NamedTuple):
     """A namedtuple representing a users profile"""
     content: Optional[str]
     background: Optional[Asset]
+
 
 class User(Messageable, Ulid):
     """Represents a user
@@ -187,11 +191,11 @@ class User(Messageable, Ulid):
         return self.dm_channel.id
 
     @property
-    def owner(self) -> User:
+    def owner(self) -> Optional[User]:
         """:class:`User` the owner of the bot account"""
 
         if not self.owner_id:
-            raise LookupError
+            return None
 
         return self.state.get_user(self.owner_id)
 
@@ -271,7 +275,7 @@ class User(Messageable, Ulid):
         if username is not None:
             self.original_name = username
 
-        # update user infomation for all members
+        # update user information for all members
 
         if self.__class__ is User:
             for member in self._members.values():
@@ -324,7 +328,7 @@ class User(Messageable, Ulid):
     def to_member(self, server: Server) -> Member:
         """Gets the member instance for this user for a specific server.
 
-        Roughly equivelent to:
+        Roughly equivalent to:
 
         .. code-block:: python
 
@@ -340,21 +344,13 @@ class User(Messageable, Ulid):
         --------
         :class:`Member`
             The member
-
-        Raises
-        -------
-        :class:`LookupError`
-
         """
-        try:
-            return self._members[server.id]
-        except IndexError:
-            raise LookupError from None
+        return self._members.get(server.id)
 
     async def open_dm(self) -> DMChannel | SavedMessageChannel:
         """Opens a dm with the user, if this user is the current user this will return :class:`SavedMessageChannel`
 
-        .. note:: using this function is discouraged as :meth:`User.send` does this implicitally.
+        .. note:: using this function is discouraged as :meth:`User.send` does this implicitly.
 
         Returns
         --------

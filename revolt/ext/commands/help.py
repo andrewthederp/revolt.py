@@ -26,6 +26,7 @@ class MessagePayload(TypedDict):
     attachments: NotRequired[list[File]]
     replies: NotRequired[list[MessageReply]]
 
+
 class HelpCommand(ABC, Generic[ClientT_Co_D]):
     @abstractmethod
     async def create_global_help(self, context: Context[ClientT_Co_D], commands: dict[Optional[Cog[ClientT_Co_D]], list[Command[ClientT_Co_D]]]) -> Union[str, SendableEmbed, MessagePayload]:
@@ -78,6 +79,7 @@ class HelpCommand(ABC, Generic[ClientT_Co_D]):
     @abstractmethod
     async def handle_no_command_found(self, context: Context[ClientT_Co_D], name: str) -> Union[str, SendableEmbed, MessagePayload]:
         raise NotImplementedError
+
 
 class DefaultHelpCommand(HelpCommand[ClientT_Co_D]):
     def __init__(self, default_cog_name: str = "No Cog"):
@@ -146,6 +148,7 @@ class DefaultHelpCommand(HelpCommand[ClientT_Co_D]):
     async def handle_no_command_found(self, context: Context[ClientT_Co_D], name: str) -> str:
         return f"Command `{name}` not found."
 
+
 class HelpCommandImpl(Command[ClientT_Co_D]):
     def __init__(self, client: ClientT_Co_D):
         self.client = client
@@ -173,17 +176,14 @@ async def help_command_impl(client: ClientT_D, context: Context[ClientT_D], *arg
         parent: ClientT_D | Group[ClientT_D] = client
 
         for param in arguments:
-            try:
-                command = parent.get_command(param)
-            except LookupError:
-                try:
-                    cog = client.get_cog(param)
-                except LookupError:
+            command = parent.get_command(param)
+            if not command:
+                cog = client.get_cog(param)
+                if not cog:
                     payload = await help_command.handle_no_command_found(context, param)
                 else:
                     payload = await help_command.create_cog_help(context, cog)
-                finally:
-                    break
+                break
 
             if isinstance(command, Group):
                 command = cast(Group[ClientT_D], command)

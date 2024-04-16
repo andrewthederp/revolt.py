@@ -17,6 +17,7 @@ __all__ = ("Cooldown", "CooldownMapping", "BucketType", "cooldown")
 
 T = TypeVar("T")
 
+
 class Cooldown:
     """Represent a single cooldown for a single key
 
@@ -60,6 +61,7 @@ class Cooldown:
 
         return None
 
+
 class CooldownMapping:
     """Holds all cooldowns for every key"""
     def __init__(self, rate: int, per: int):
@@ -78,6 +80,7 @@ class CooldownMapping:
             self.cache[key] = rl = Cooldown(self.rate, self.per)
 
         return rl
+
 
 class BucketType(Enum):
     default = 0
@@ -107,6 +110,7 @@ class BucketType(Enum):
                 return f"{context.author.id}{server_id}"
 
             raise ServerOnly
+
 
 def cooldown(rate: int, per: int, *, bucket: BucketType | Callable[[Context[ClientT_Co]], Coroutine[Any, Any, str]] = BucketType.default) -> Callable[[T], T]:
     """Adds a cooldown to a command

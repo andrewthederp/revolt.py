@@ -105,11 +105,9 @@ class Message(Ulid):
         self.reply_ids: list[str] = []
 
         for reply in data.get("replies", []):
-            try:
-                message = state.get_message(reply)
+            message = state.get_message(reply)
+            if message:
                 self.replies.append(message)
-            except LookupError:
-                pass
 
             self.reply_ids.append(reply)
 
@@ -148,17 +146,15 @@ class Message(Ulid):
 
         if self.server_id:
             for mention in self.raw_mentions:
-                try:
-                    self.mentions.append(self.server.get_member(mention))
-                except LookupError:
-                    pass
+                member = self.server.get_member(mention)
+                if member:
+                    self.mentions.append(member)
 
         else:
             for mention in self.raw_mentions:
-                try:
-                    self.mentions.append(self.state.get_user(mention))
-                except LookupError:
-                    pass
+                user = self.state.get_user(mention)
+                if user:
+                    self.mentions.append(user)
 
         return mentions
 
@@ -221,14 +217,9 @@ class Message(Ulid):
 
     @property
     def server(self) -> Server:
-        """:class:`Server` The server this voice channel belongs too
-
-        Raises
-        -------
-        :class:`LookupError`
-            Raises if the channel is not part of a server
-        """
+        """:class:`Server` The server this message was sent in"""
         return self.channel.server
+
 
 class MessageReply:
     """represents a reply to a message.

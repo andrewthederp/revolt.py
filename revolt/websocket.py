@@ -88,7 +88,7 @@ class WebsocketHandler:
 
     async def heartbeat(self) -> None:
         while not self.websocket.closed:
-            logger.info("Sending hearbeat")
+            logger.info("Sending heartbeat")
             await self.websocket.ping()
             await asyncio.sleep(15)
 
@@ -102,7 +102,7 @@ class WebsocketHandler:
 
     async def handle_event(self, payload: BasePayload) -> None:
         event_type = payload["type"].lower()
-        logger.debug("Recieved event %s %s", event_type, payload)
+        logger.debug("Received event %s %s", event_type, payload)
 
         try:
             if event_type not in ["ready", "notfound"]:
@@ -138,7 +138,7 @@ class WebsocketHandler:
             self.state.add_member(member["_id"]["server"], member)
 
         for emoji in payload["emojis"]:
-            emoji = self.state.add_emoji(emoji)
+            self.state.add_emoji(emoji)
 
         await self.state.fetch_all_server_members()
 
@@ -151,15 +151,14 @@ class WebsocketHandler:
 
         message = self.state.add_message(cast(MessagePayload, payload))
 
-
         self.dispatch("message", message)
 
     async def handle_messageupdate(self, payload: MessageUpdateEventPayload) -> None:
         self.dispatch("raw_message_update", payload)
 
-        try:
-            message = self.state.get_message(payload["id"])
-        except LookupError:
+
+        message = self.state.get_message(payload["id"])
+        if message is None:
             return
 
         if server_id := message.channel.server_id:
@@ -173,9 +172,9 @@ class WebsocketHandler:
     async def handle_messagedelete(self, payload: MessageDeleteEventPayload) -> None:
         self.dispatch("raw_message_delete", payload)
 
-        try:
-            message = self.state.get_message(payload["id"])
-        except LookupError:
+
+        message = self.state.get_message(payload["id"])
+        if message is None:
             return
 
         if server_id := message.channel.server_id:
@@ -195,9 +194,9 @@ class WebsocketHandler:
         self.dispatch("channel_create", channel)
 
     async def handle_channelupdate(self, payload: ChannelUpdateEventPayload) -> None:
-        # Revolt sends channel updates for channels we dont have permissions to see, a bug, but still can cause issues as its not in the cache
+        # Revolt sends channel updates for channels we don't have permissions to see, a bug, but still can cause issues as it's not in the cache
 
-        if not (channel := self.state.channels.get(payload["id"], None)):
+        if not (channel := self.state.get_channel(payload["id"])):
             return
 
         if server_id := channel.server_id:
@@ -335,10 +334,9 @@ class WebsocketHandler:
         server = self.state.get_server(payload["id"])
         await self._wait_for_server_ready(server.id)
 
-        try:
-            role = server.get_role(payload["role_id"])
-        except LookupError:
-            # the role wasnt found meaning it was just created
+        role = server.get_role(payload["role_id"])
+        if not role:
+            # the role wasn't found meaning it was just created
 
             role = Role(cast(RolePayload, payload["data"]), payload["role_id"], server, self.state)
             server._roles[role.id] = role
@@ -398,9 +396,8 @@ class WebsocketHandler:
 
         self.dispatch("raw_reaction_add", payload)
 
-        try:
-            message = utils.get(self.state.messages, id=payload["id"])
-        except LookupError:
+        message = utils.get(self.state.messages, id=payload["id"])
+        if message is None:
             return
 
         user = self.state.get_user(payload["user_id"])
@@ -415,9 +412,8 @@ class WebsocketHandler:
 
         self.dispatch("raw_reaction_remove", payload)
 
-        try:
-            message = utils.get(self.state.messages, id=payload["id"])
-        except LookupError:
+        message = utils.get(self.state.messages, id=payload["id"])
+        if message is None:
             return
 
         user = self.state.get_user(payload["user_id"])
@@ -431,9 +427,8 @@ class WebsocketHandler:
 
         self.dispatch("raw_reaction_clear", payload)
 
-        try:
-            message = utils.get(self.state.messages, id=payload["id"])
-        except LookupError:
+        message = utils.get(self.state.messages, id=payload["id"])
+        if message is None:
             return
 
         users = message.reactions.pop(payload["emoji_id"])
@@ -453,17 +448,15 @@ class WebsocketHandler:
 
             self.dispatch("raw_message_delete", MessageDeleteEventPayload(type="messagedelete", channel=payload["channel"], id=message_id))
 
-            try:
-                message = self.state.get_message(message_id)
-            except LookupError:
-                pass
-            else:
+            message = self.state.get_message(message_id)
+            if message is not None:
                 self.state.messages.remove(message)
                 self.dispatch("message_delete", message)
 
                 messages.append(message)
 
-            self.dispatch("bulk_message_delete", messages)
+            if messages:
+                self.dispatch("bulk_message_delete", messages)
 
     async def start(self, reconnect: bool) -> None:
         if use_msgpack:
@@ -477,7 +470,7 @@ class WebsocketHandler:
             hb = asyncio.create_task(self.heartbeat())
 
             async for msg in self.websocket:
-                msg = cast(WSMessage, msg)  # aiohttp doesnt use NamedTuple so the type info is missing
+                msg = cast(WSMessage, msg)  # aiohttp doesn't use NamedTuple so the type info is missing
 
                 if use_msgpack:
                     data = cast(bytes, msg.data)

@@ -17,6 +17,7 @@ T = TypeVar("T", Callable[..., Any], Command, default=Command)
 
 Check = Callable[[Context[ClientT_D]], Union[Any, Coroutine[Any, Any, Any]]]
 
+
 def check(check: Check[ClientT_D]) -> Callable[[T], T]:
     """A decorator for adding command checks
 
@@ -38,6 +39,7 @@ def check(check: Check[ClientT_D]) -> Callable[[T], T]:
 
     return inner
 
+
 def is_bot_owner() -> Callable[[T], T]:
     """A command check for limiting the command to only the bot's owner"""
     @check
@@ -53,6 +55,7 @@ def is_bot_owner() -> Callable[[T], T]:
 
     return inner
 
+
 def is_server_owner() -> Callable[[T], T]:
     """A command check for limiting the command to only a server's owner"""
     @check
@@ -67,6 +70,7 @@ def is_server_owner() -> Callable[[T], T]:
 
     return inner
 
+
 def has_permissions(**permissions: bool) -> Callable[[T], T]:
     @check
     def inner(context: Context[ClientT_D]) -> bool:
@@ -78,6 +82,7 @@ def has_permissions(**permissions: bool) -> Callable[[T], T]:
         return True
 
     return inner
+
 
 def has_channel_permissions(**permissions: bool) -> Callable[[T], T]:
     @check

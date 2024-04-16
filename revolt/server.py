@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 __all__ = ("Server", "SystemMessages", "ServerBan")
 
+
 class SystemMessages:
     """Holds all the configuration for the server's system message channels"""
 
@@ -99,6 +100,7 @@ class SystemMessages:
         assert isinstance(channel, TextChannel)
         return channel
 
+
 class Server(Ulid):
     """Represents a server
 
@@ -123,7 +125,9 @@ class Server(Ulid):
     default_permissions: :class:`Permissions`
         The permissions for the default role
     """
-    __slots__ = ("state", "id", "name", "owner_id", "default_permissions", "_members", "_roles", "_channels", "description", "icon", "banner", "nsfw", "system_messages", "_categories", "_emojis")
+    __slots__ = (
+    "state", "id", "name", "owner_id", "default_permissions", "_members", "_roles", "_channels", "description", "icon",
+    "banner", "nsfw", "system_messages", "_categories", "_emojis")
 
     def __init__(self, data: ServerPayload, state: State):
         self.state: State = state
@@ -132,8 +136,11 @@ class Server(Ulid):
         self.owner_id: str = data["owner"]
         self.description: str | None = data.get("description") or None
         self.nsfw: bool = data.get("nsfw", False)
-        self.system_messages: SystemMessages = SystemMessages(data.get("system_messages", cast("SystemMessagesConfig", {})), state)
-        self._categories: dict[str, Category] = {data["id"]: Category(data, state) for data in data.get("categories", [])}
+        self.system_messages: SystemMessages = SystemMessages(
+            data.get("system_messages", cast("SystemMessagesConfig", {})), state
+            )
+        self._categories: dict[str, Category] = {data["id"]: Category(data, state) for data in
+                                                 data.get("categories", [])}
         self.default_permissions: Permissions = Permissions(data["default_permissions"])
 
         self.icon: Asset | None
@@ -151,20 +158,33 @@ class Server(Ulid):
             self.banner = None
 
         self._members: dict[str, Member] = {}
-        self._roles: dict[str, Role] = {role_id: Role(role, role_id, self, state) for role_id, role in data.get("roles", {}).items()}
+        self._roles: dict[str, Role] = {role_id: Role(role, role_id, self, state) for role_id, role in
+                                        data.get("roles", {}).items()}
 
         self._channels: dict[str, Channel] = {}
 
         # The api doesnt send us all the channels but sends us all the ids, this is because channels we dont have permissions to see are not sent
         # this causes get_channel to error so we have to first check ourself if its in the cache.
-
         for channel_id in data["channels"]:
             if channel := state.channels.get(channel_id):
                 self._channels[channel_id] = channel
 
         self._emojis: dict[str, Emoji] = {}
 
-    def _update(self, *, owner: Optional[str] = None, name: Optional[str] = None, description: Optional[str] = None, icon: Optional[FilePayload] = None, banner: Optional[FilePayload] = None, default_permissions: Optional[int] = None, nsfw: Optional[bool] = None, system_messages: Optional[SystemMessagesConfig] = None, categories: Optional[list[CategoryPayload]] = None, channels: Optional[list[str]] = None):
+    def _update(
+            self,
+            *,
+            owner: Optional[str] = None,
+            name: Optional[str] = None,
+            description: Optional[str] = None,
+            icon: Optional[FilePayload] = None,
+            banner: Optional[FilePayload] = None,
+            default_permissions: Optional[int] = None,
+            nsfw: Optional[bool] = None,
+            system_messages: Optional[SystemMessagesConfig] = None,
+            categories: Optional[list[CategoryPayload]] = None,
+            channels: Optional[list[str]] = None
+            ):
         if owner is not None:
             self.owner_id = owner
         if name is not None:
@@ -194,7 +214,7 @@ class Server(Ulid):
 
     @property
     def roles(self) -> list[Role]:
-        """list[:class:`Role`] Gets all roles in the server in decending order"""
+        """list[:class:`Role`] Gets all roles in the server in descending order"""
         return list(self._roles.values())
 
     @property
@@ -217,12 +237,12 @@ class Server(Ulid):
         """list[:class:`Emoji`] Gets all emojis in the server"""
         return list(self._emojis.values())
 
-    def get_role(self, role_id: str) -> Role:
+    def get_role(self, role_id: str) -> Optional[Role]:
         """Gets a role from the cache
 
         Parameters
         -----------
-        id: :class:`str`
+        role_id: :class:`str`
             The id of the role
 
         Returns
@@ -230,14 +250,14 @@ class Server(Ulid):
         :class:`Role`
             The role
         """
-        return self._roles[role_id]
+        return self._roles.get(role_id)
 
-    def get_member(self, member_id: str) -> Member:
+    def get_member(self, member_id: str) -> Optional[Member]:
         """Gets a member from the cache
 
         Parameters
         -----------
-        id: :class:`str`
+        member_id: :class:`str`
             The id of the member
 
         Returns
@@ -247,12 +267,12 @@ class Server(Ulid):
         """
         return self._members.get(member_id)
 
-    def get_channel(self, channel_id: str) -> Channel:
+    def get_channel(self, channel_id: str) -> Optional[Channel]:
         """Gets a channel from the cache
 
         Parameters
         -----------
-        id: :class:`str`
+        channel_id: :class:`str`
             The id of the channel
 
         Returns
@@ -260,17 +280,14 @@ class Server(Ulid):
         :class:`Channel`
             The channel
         """
-        try:
-            return self._channels[channel_id]
-        except KeyError:
-            raise LookupError from None
+        return self._channels.get(channel_id)
 
-    def get_category(self, category_id: str) -> Category:
+    def get_category(self, category_id: str) -> Optional[Category]:
         """Gets a category from the cache
 
         Parameters
         -----------
-        id: :class:`str`
+        category_id: :class:`str`
             The id of the category
 
         Returns
@@ -278,17 +295,14 @@ class Server(Ulid):
         :class:`Category`
             The category
         """
-        try:
-            return self._categories[category_id]
-        except KeyError:
-            raise LookupError from None
+        return self._categories.get(category_id)
 
-    def get_emoji(self, emoji_id: str) -> Emoji:
+    def get_emoji(self, emoji_id: str) -> Optional[Emoji]:
         """Gets a emoji from the cache
 
         Parameters
         -----------
-        id: :class:`str`
+        emoji_id: :class:`str`
             The id of the emoji
 
         Returns
@@ -296,13 +310,10 @@ class Server(Ulid):
         :class:`Emoji`
             The emoji
         """
-        try:
-            return self._emojis[emoji_id]
-        except KeyError as e:
-            raise LookupError from e
+        return self._emojis.get(emoji_id)
 
     @property
-    def owner(self) -> Member:
+    def owner(self) -> Optional[Member]:
         """:class:`Member` The owner of the server"""
         return self.get_member(self.owner_id)
 
@@ -322,9 +333,7 @@ class Server(Ulid):
         """Leaves or deletes the server"""
         await self.state.http.delete_leave_server(self.id)
 
-    async def delete_server(self) -> None:
-        """Leaves or deletes a server, alias to :meth`Server.leave_server`"""
-        await self.leave_server()
+    delete_server = leave_server
 
     async def create_text_channel(self, *, name: str, description: Optional[str] = None) -> TextChannel:
         """Creates a text channel in the server
@@ -379,7 +388,9 @@ class Server(Ulid):
         """
         invite_payloads = await self.state.http.fetch_server_invites(self.id)
 
-        return [Invite._from_partial(payload["_id"], payload["server"], payload["creator"], payload["channel"], self.state) for payload in invite_payloads]
+        return [
+            Invite._from_partial(payload["_id"], payload["server"], payload["creator"], payload["channel"], self.state)
+            for payload in invite_payloads]
 
     async def fetch_member(self, member_id: str) -> Member:
         """Fetches a member from this server

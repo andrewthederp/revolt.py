@@ -227,7 +227,7 @@ class Client:
         ...
 
     def remove_listener(self, func: Callable[P, Coroutine[Any, Any, R]], *, event: str | None = None) -> Callable[..., Coroutine[Any, Any, R]] | None:
-        """Removes a listener registered, if the `event` parameter is passed, the listener will only be removed from that event, this can be used if the same listener is registed to multiple events at once.
+        """Removes a listener registered, if the `event` parameter is passed, the listener will only be removed from that event, this can be used if the same listener is registered to multiple events at once.
 
         Parameters
         -----------
@@ -350,7 +350,7 @@ class Client:
 
         return Invite(payload, code, self.state)
 
-    def get_message(self, message_id: str) -> Message:
+    def get_message(self, message_id: str) -> Optional[Message]:
         """Gets a message from the cache
 
         Parameters
@@ -362,17 +362,10 @@ class Client:
         --------
         :class:`Message`
             The message with the matching id
-
-        Raises
-        -------
-        LookupError
-            This raises if the message is not found in the cache
         """
         for message in self.state.messages:
             if message.id == message_id:
                 return message
-
-        raise LookupError
 
     async def edit_self(self, **kwargs: Any) -> None:
         """Edits the client's own user

@@ -33,4 +33,11 @@ class Category(Ulid):
     @property
     def channels(self) -> list[Channel]:
         """Returns a list of channels that the category contains"""
-        return [self.state.get_channel(channel_id) for channel_id in self.channel_ids]
+        channels = list()
+
+        for channel_id in self.channel_ids:
+            channel = self.state.get_channel(channel_id)
+            if channel:
+                channel.category = self
+                channels.append(channel)
+        return channels

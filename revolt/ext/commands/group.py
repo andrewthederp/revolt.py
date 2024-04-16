@@ -106,7 +106,7 @@ class Group(Command[ClientT_Co_D]):
         """
         return list(set(self.subcommands.values()))
 
-    def get_command(self, name: str) -> Command[ClientT_Co_D]:
+    def get_command(self, name: str) -> Optional[Command[ClientT_Co_D]]:
         """Gets a command.
 
         Parameters
@@ -119,7 +119,7 @@ class Group(Command[ClientT_Co_D]):
         :class:`Command`
             The command with the name
         """
-        return self.subcommands[name]
+        return self.subcommands.get(name)
 
     def add_command(self, command: Command[ClientT_Co_D]) -> None:
         """Adds a command, this is typically only used for dynamic commands, you should use the `commands.command` decorator for most usecases.
