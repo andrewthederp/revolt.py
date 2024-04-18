@@ -158,15 +158,7 @@ class Command(Generic[ClientT_Co_D]):
                 raise InvalidLiteralArgument(arg, args)
 
     @classmethod
-    async def convert_argument(cls, arg: str, param: inspect.Parameter, context: Context[ClientT_Co_D]) -> Any:
-        annotation = param.annotation
-
-        if arg == "":
-            if param.default is not param.empty:
-                return param.default
-            else:
-                raise MissingRequiredArgument(param.name)
-
+    async def convert_argument(cls, arg: str, annotation: Any, context: Context[ClientT_Co_D]) -> Any:
         if annotation is not inspect.Signature.empty:
             if annotation is str:  # no converting is needed - it's already a string
                 return arg
@@ -185,18 +177,25 @@ class Command(Generic[ClientT_Co_D]):
         for parameter in self.parameters[2:]:
             if parameter.kind == parameter.KEYWORD_ONLY:
                 string = context.view.get_rest()
-                arg = await self.convert_argument(string, parameter, context)
-                context.kwargs[parameter.name] = arg
+
+                if string == "":
+                    if parameter.default is not parameter.empty:
+                        context.kwargs[parameter.name] = parameter.default
+                    else:
+                        raise MissingRequiredArgument(parameter.name)
+                else:
+                    arg = await self.convert_argument(string, parameter.annotation, context)
+                    context.kwargs[parameter.name] = arg
 
             elif parameter.kind == parameter.VAR_POSITIONAL:
                 with suppress(StopIteration):
                     while True:
-                        context.args.append(await self.convert_argument(context.view.get_next_word(), parameter, context))
+                        context.args.append(await self.convert_argument(context.view.get_next_word(), parameter.annotation, context))
 
             elif parameter.kind in (parameter.POSITIONAL_OR_KEYWORD, parameter.POSITIONAL_ONLY):
                 try:
                     rest = context.view.get_next_word()
-                    arg = await self.convert_argument(rest, parameter, context)
+                    arg = await self.convert_argument(rest, parameter.annotation, context)
                 except StopIteration:
                     if parameter.default is not parameter.empty:
                         arg = parameter.default

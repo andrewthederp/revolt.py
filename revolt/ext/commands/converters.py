@@ -8,15 +8,15 @@ from revolt import Category, Channel, Member, User, utils, TextChannel, VoiceCha
 from .context import Context
 from .errors import (BadBoolArgument, CategoryConverterError,
                      ChannelConverterError, MemberConverterError, ServerOnly,
-                     UserConverterError)
+                     UserConverterError, TextChannelConverterError)
 
 if TYPE_CHECKING:
     from .client import CommandsClient
 
 __all__: tuple[str, ...] = ("bool_converter", "category_converter", "channel_converter", "user_converter", "member_converter", "IntConverter", "BoolConverter", "CategoryConverter", "UserConverter", "MemberConverter", "ChannelConverter", "TextChannelConverter")
 
-channel_regex: re.Pattern[str] = re.compile("[<#]?([A-z0-9]{26})>?")
-user_regex: re.Pattern[str] = re.compile("[<@]?([A-z0-9]{26})>?")
+channel_regex: re.Pattern[str] = re.compile("<?#?([A-z0-9]{26})>?")
+user_regex: re.Pattern[str] = re.compile("<?@?([A-z0-9]{26})>?")
 
 ClientT = TypeVar("ClientT", bound="CommandsClient")
 
@@ -71,7 +71,9 @@ def text_channel_converter(arg: str, context: Context[ClientT]) -> Channel:
     if match := channel_regex.match(arg):
         arg = match.group(1)
 
+        print(arg)
         channel = context.server.get_channel(arg)
+        print(channel)
         if channel and isinstance(channel, TextChannel):
             return channel
 

@@ -158,6 +158,11 @@ class Message(Ulid):
 
         return mentions
 
+    @property
+    def jump_url(self) -> str:
+        """The url to jump to this message"""
+        return f"https://app.revolt.chat/server/{self.server.id}/channel/{self.channel.id}/{self.id}"
+
     async def edit(self, *, content: Optional[str] = None, embeds: Optional[list[SendableEmbed]] = None) -> None:
         """Edits the message. The bot can only edit its own message
 
