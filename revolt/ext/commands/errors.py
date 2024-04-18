@@ -15,6 +15,7 @@ __all__ = (
     "BadBoolArgument",
     "CategoryConverterError",
     "ChannelConverterError",
+    "TextChannelConverterError"
     "UserConverterError",
     "MemberConverterError",
     "UnionConverterError",

@@ -13,7 +13,7 @@ from .errors import (BadBoolArgument, CategoryConverterError,
 if TYPE_CHECKING:
     from .client import CommandsClient
 
-__all__: tuple[str, ...] = ("bool_converter", "category_converter", "channel_converter", "user_converter", "member_converter", "IntConverter", "BoolConverter", "CategoryConverter", "UserConverter", "MemberConverter", "ChannelConverter")
+__all__: tuple[str, ...] = ("bool_converter", "category_converter", "channel_converter", "user_converter", "member_converter", "IntConverter", "BoolConverter", "CategoryConverter", "UserConverter", "MemberConverter", "ChannelConverter", "TextChannelConverter")
 
 channel_regex: re.Pattern[str] = re.compile("[<#]?([A-z0-9]{26})>?")
 user_regex: re.Pattern[str] = re.compile("[<@]?([A-z0-9]{26})>?")
