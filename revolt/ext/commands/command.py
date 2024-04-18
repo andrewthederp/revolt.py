@@ -9,7 +9,7 @@ from typing_extensions import ParamSpec
 
 from revolt.utils import maybe_coroutine
 
-from .errors import CommandOnCooldown, InvalidLiteralArgument, UnionConverterError, MissingRequiredArgument
+from .errors import CommandOnCooldown, InvalidLiteralArgument, UnionConverterError, MissingRequiredArgument, ConverterError
 from .utils import ClientT_Co_D, evaluate_parameters, ClientT_Co
 from .cooldown import BucketType, CooldownMapping
 
@@ -126,13 +126,13 @@ class Command(Generic[ClientT_Co_D]):
         ctx.client.dispatch("command_error", ctx, error)
 
     @classmethod
-    async def handle_origin(cls, context: Context[ClientT_Co_D], origin: Any, annotation: Any, arg: str) -> Any:
+    async def handle_origin(cls, context: Context[ClientT_Co_D], origin: Any, annotation: Any, parameter_name: str, arg: str) -> Any:
         if origin is Union:
             possible_converters = get_args(annotation)
             for converter in possible_converters:
                 if converter is not type(None):
                     try:
-                        return await cls.convert_argument(arg, converter, context)
+                        return await cls.convert_argument(arg, converter, parameter_name, context)
                     except Exception:
                         pass
 
@@ -146,28 +146,34 @@ class Command(Generic[ClientT_Co_D]):
             annotated_args = get_args(annotation)
 
             if origin := get_origin(annotated_args[0]):
-                return await cls.handle_origin(context, origin, annotated_args[1], arg)
+                return await cls.handle_origin(context, origin, annotated_args[1], parameter_name, arg)
             else:
-                return await cls.convert_argument(arg, annotated_args[1], context)
+                return await cls.convert_argument(arg, annotated_args[1], parameter_name, context)
 
         elif origin is Literal:
             args = get_args(annotation)
             if arg in args:
                 return arg
             else:
-                raise InvalidLiteralArgument(arg, args)
+                error = InvalidLiteralArgument(arg, args)
+                error.parameter_name = parameter_name
+                raise error
 
     @classmethod
-    async def convert_argument(cls, arg: str, annotation: Any, context: Context[ClientT_Co_D]) -> Any:
+    async def convert_argument(cls, arg: str, annotation: Any, parameter_name: str, context: Context[ClientT_Co_D]) -> Any:
         if annotation is not inspect.Signature.empty:
             if annotation is str:  # no converting is needed - it's already a string
                 return arg
 
             origin: Any
             if origin := get_origin(annotation):
-                return await cls.handle_origin(context, origin, annotation, arg)
+                return await cls.handle_origin(context, origin, annotation, parameter_name, arg)
             else:
-                return await maybe_coroutine(annotation, arg, context)
+                try:
+                    return await maybe_coroutine(annotation, arg, context)
+                except ConverterError as exc:
+                    exc.parameter_name = parameter_name
+                    raise exc
         else:
             return arg
 
@@ -184,18 +190,18 @@ class Command(Generic[ClientT_Co_D]):
                     else:
                         raise MissingRequiredArgument(parameter.name)
                 else:
-                    arg = await self.convert_argument(string, parameter.annotation, context)
+                    arg = await self.convert_argument(string, parameter.annotation, parameter.name, context)
                     context.kwargs[parameter.name] = arg
 
             elif parameter.kind == parameter.VAR_POSITIONAL:
                 with suppress(StopIteration):
                     while True:
-                        context.args.append(await self.convert_argument(context.view.get_next_word(), parameter.annotation, context))
+                        context.args.append(await self.convert_argument(context.view.get_next_word(), parameter.annotation, parameter.name, context))
 
             elif parameter.kind in (parameter.POSITIONAL_OR_KEYWORD, parameter.POSITIONAL_ONLY):
                 try:
                     rest = context.view.get_next_word()
-                    arg = await self.convert_argument(rest, parameter.annotation, context)
+                    arg = await self.convert_argument(rest, parameter.annotation, parameter.name, context)
                 except StopIteration:
                     if parameter.default is not parameter.empty:
                         arg = parameter.default

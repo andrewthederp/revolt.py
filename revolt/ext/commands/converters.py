@@ -71,15 +71,13 @@ def text_channel_converter(arg: str, context: Context[ClientT]) -> Channel:
     if match := channel_regex.match(arg):
         arg = match.group(1)
 
-        print(arg)
         channel = context.server.get_channel(arg)
-        print(channel)
         if channel and isinstance(channel, TextChannel):
             return channel
-
-    channel = utils.get(context.server.text_channels, name=arg)
-    if channel:
-        return channel
+    else:
+        channel = utils.get(context.server.text_channels, name=arg)
+        if channel:
+            return channel
 
     raise TextChannelConverterError(arg)
 
