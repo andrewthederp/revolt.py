@@ -82,7 +82,7 @@ class Member(User):
     @property
     def display_name(self) -> str:
         """:class:`str` The name the user is displaying, this includes (in order) their masqueraded name, display name and orginal name"""
-        return self.nickname or self.display_name or self.masquerade_name or self.original_name
+        return self.nickname or self._display_name or self.masquerade_name or self.original_name
 
     @property
     def mention(self) -> str:

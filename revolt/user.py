@@ -75,7 +75,7 @@ class User(Messageable, Ulid):
     privileged: :class:`bool`
         Whether the user is privileged
     """
-    __flattern_attributes__: tuple[str, ...] = ("id", "discriminator", "display_name", "bot", "owner_id", "badges", "online", "flags", "relations", "relationship", "status", "masquerade_avatar", "masquerade_name", "original_name", "original_avatar", "profile", "dm_channel", "privileged")
+    __flattern_attributes__: tuple[str, ...] = ("id", "discriminator", "_display_name", "bot", "owner_id", "badges", "online", "flags", "relations", "relationship", "status", "masquerade_avatar", "masquerade_name", "original_name", "original_avatar", "profile", "dm_channel", "privileged")
     __slots__: tuple[str, ...] = (*__flattern_attributes__, "state", "_members")
 
     def __init__(self, data: UserPayload, state: State):
@@ -83,7 +83,7 @@ class User(Messageable, Ulid):
         self._members: WeakValueDictionary[str, Member] = WeakValueDictionary()  # we store all member versions of this user to avoid having to check every guild when needing to update.
         self.id: str = data["_id"]
         self.discriminator: str = data["discriminator"]
-        self.display_name: str | None = data.get("display_name")
+        self._display_name: str | None = data.get("display_name")
         self.original_name: str = data["username"]
         self.dm_channel: DMChannel | SavedMessageChannel | None = None
 
@@ -202,7 +202,7 @@ class User(Messageable, Ulid):
     @property
     def name(self) -> str:
         """:class:`str` The name the user is displaying, this includes (in order) their masqueraded name, display name and original name"""
-        return self.display_name or self.masquerade_name or self.original_name
+        return self._display_name or self.masquerade_name or self.original_name
 
     @property
     def avatar(self) -> Union[Asset, PartialAsset, None]:
