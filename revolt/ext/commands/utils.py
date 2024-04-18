@@ -17,6 +17,7 @@ ClientT_D = TypeVar("ClientT_D", bound="CommandsClient", default="CommandsClient
 ClientT_Co_D = TypeVar("ClientT_Co_D", bound="CommandsClient", default="CommandsClient", covariant=True)
 ContextT = TypeVar("ContextT", bound="Context", default="Context")
 
+
 def evaluate_parameters(parameters: Iterable[Parameter], globals: dict[str, Any]) -> list[Parameter]:
     new_parameters: list[Parameter] = []
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Annotated, TypeVar
 
-from revolt import Category, Channel, Member, User, utils
+from revolt import Category, Channel, Member, User, utils, TextChannel, VoiceChannel
 
 from .context import Context
 from .errors import (BadBoolArgument, CategoryConverterError,
@@ -62,6 +62,24 @@ def channel_converter(arg: str, context: Context[ClientT]) -> Channel:
         return channel
 
     raise ChannelConverterError(arg)
+
+
+def text_channel_converter(arg: str, context: Context[ClientT]) -> Channel:
+    if not context.server_id:
+        raise ServerOnly
+
+    if match := channel_regex.match(arg):
+        arg = match.group(1)
+
+        channel = context.server.get_channel(arg)
+        if channel and isinstance(channel, TextChannel):
+            return channel
+
+    channel = utils.get(context.server.text_channels, name=arg)
+    if channel:
+        return channel
+
+    raise TextChannelConverterError(arg)
 
 
 def user_converter(arg: str, context: Context[ClientT]) -> User:
@@ -130,3 +148,4 @@ CategoryConverter = Annotated[Category, category_converter]
 UserConverter = Annotated[User, user_converter]
 MemberConverter = Annotated[Member, member_converter]
 ChannelConverter = Annotated[Channel, channel_converter]
+TextChannelConverter = Annotated[TextChannel, text_channel_converter]

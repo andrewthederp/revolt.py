@@ -163,8 +163,8 @@ class Server(Ulid):
 
         self._channels: dict[str, Channel] = {}
 
-        # The api doesnt send us all the channels but sends us all the ids, this is because channels we dont have permissions to see are not sent
-        # this causes get_channel to error so we have to first check ourself if its in the cache.
+        # The api doesn't send us all the channels but sends us all the ids, this is because channels we don't have permissions to see are not sent
+        # this causes get_channel to error, so we have to first check ourselves if it's in the cache.
         for channel_id in data["channels"]:
             if channel := state.channels.get(channel_id):
                 self._channels[channel_id] = channel
@@ -224,8 +224,18 @@ class Server(Ulid):
 
     @property
     def channels(self) -> list[Channel]:
-        """list[:class:`Member`] Gets all channels in the server"""
+        """list[:class:`Channel`] Gets all channels in the server"""
         return list(self._channels.values())
+
+    @property
+    def text_channels(self) -> list[TextChannel]:
+        """list[:class:`Channel`] Gets all the text channels in the server"""
+        return [c for c in self._channels.values() if isinstance(c, TextChannel)]
+
+    @property
+    def voice_channels(self) -> list[VoiceChannel]:
+        """list[:class:`Channel`] Gets all the text channels in the server"""
+        return [c for c in self._channels.values() if isinstance(c, VoiceChannel)]
 
     @property
     def categories(self) -> list[Category]:

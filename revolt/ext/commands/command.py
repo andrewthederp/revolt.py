@@ -128,13 +128,17 @@ class Command(Generic[ClientT_Co_D]):
     @classmethod
     async def handle_origin(cls, context: Context[ClientT_Co_D], origin: Any, annotation: Any, arg: str) -> Any:
         if origin is Union:
-            for converter in get_args(annotation):
-                try:
-                    return await cls.convert_argument(arg, converter, context)
-                except:
-                    if converter is NoneType:
-                        context.view.undo()
-                        return None
+            possible_converters = get_args(annotation)
+            for converter in possible_converters:
+                if converter is not type(None):
+                    try:
+                        return await cls.convert_argument(arg, converter, context)
+                    except Exception:
+                        pass
+
+            if type(None) in possible_converters:
+                context.view.undo()
+                return None
 
             raise UnionConverterError(arg)
 
@@ -147,10 +151,11 @@ class Command(Generic[ClientT_Co_D]):
                 return await cls.convert_argument(arg, annotated_args[1], context)
 
         elif origin is Literal:
-            if arg in get_args(annotation):
+            args = get_args(annotation)
+            if arg in args:
                 return arg
             else:
-                raise InvalidLiteralArgument(arg)
+                raise InvalidLiteralArgument(arg, args)
 
     @classmethod
     async def convert_argument(cls, arg: str, param: inspect.Parameter, context: Context[ClientT_Co_D]) -> Any:

@@ -22,9 +22,11 @@ if TYPE_CHECKING:
 
 __all__ = ("Member",)
 
+
 def flattern_user(member: Member, user: User) -> None:
     for attr in user.__flattern_attributes__:
         setattr(member, attr, getattr(user, attr))
+
 
 class Member(User):
     """Represents a member of a server, subclasses :class:`User`
@@ -73,12 +75,12 @@ class Member(User):
             self.current_timeout = None
 
     @property
-    def avatar(self) -> Optional[Asset]:
+    def display_avatar(self) -> Optional[Asset]:
         """Optional[:class:`Asset`] The avatar the member is displaying, this includes guild avatars and masqueraded avatar"""
         return self.masquerade_avatar or self.guild_avatar or self.original_avatar
 
     @property
-    def name(self) -> str:
+    def display_name(self) -> str:
         """:class:`str` The name the user is displaying, this includes (in order) their masqueraded name, display name and orginal name"""
         return self.nickname or self.display_name or self.masquerade_name or self.original_name
 

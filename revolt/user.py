@@ -201,12 +201,17 @@ class User(Messageable, Ulid):
 
     @property
     def name(self) -> str:
-        """:class:`str` The name the user is displaying, this includes (in order) their masqueraded name, display name and orginal name"""
+        """:class:`str` The name the user is displaying, this includes (in order) their masqueraded name, display name and original name"""
         return self.display_name or self.masquerade_name or self.original_name
 
     @property
     def avatar(self) -> Union[Asset, PartialAsset, None]:
-        """Optional[:class:`Asset`] The avatar the member is displaying, this includes there orginal avatar and masqueraded avatar"""
+        """Optional[:class:`Asset`] The member's original avatar"""
+        return self.original_avatar
+
+    @property
+    def display_avatar(self) -> Union[Asset, PartialAsset, None]:
+        """Optional[:class:`Asset`] The avatar the member is displaying, this includes there original avatar and masqueraded avatar"""
         return self.masquerade_avatar or self.original_avatar
 
     @property

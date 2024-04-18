@@ -96,7 +96,7 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
             return await command.invoke(self, *self.args, **self.kwargs)
 
     async def can_run(self, command: Optional[Command[ClientT_Co_D]] = None) -> bool:
-        """Runs all of the commands checks, and returns true if all of them pass"""
+        """Runs all the command checks, and returns true if all of them pass"""
         command = command or self.command
 
         return all([await maybe_coroutine(check, self) for check in (command.checks if command else [])])

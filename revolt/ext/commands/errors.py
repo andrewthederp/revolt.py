@@ -88,11 +88,30 @@ class MissingRequiredArgument(CommandError):
 
 
 class ConverterError(CommandError):
-    """Base class for all converter errors"""
+    """
+    Base class for all converter errors
+
+    Attributes
+    -----------
+    argument: :class:`str`
+        The argument that made the converter fail
+    """
+    def __init__(self, argument):
+        self.argument = argument
 
 
 class InvalidLiteralArgument(ConverterError):
-    """Raised when the argument is not a valid literal argument"""
+    """
+    Raised when the argument is not a valid literal argument
+
+    Attributes
+    -----------
+    valid_literals: :class:`tuple[str]`
+        A tuple of the literals `argument` could be in
+    """
+    def __init__(self, argument, valid_literals):
+        super().__init__(argument)
+        self.valid_literals = valid_literals
 
 
 class BadBoolArgument(ConverterError):
@@ -100,33 +119,27 @@ class BadBoolArgument(ConverterError):
 
 
 class CategoryConverterError(ConverterError):
-    """Raised when the Category conveter fails"""
-    def __init__(self, argument: str):
-        self.argument = argument
+    """Raised when the Category converter fails"""
 
 
 class ChannelConverterError(ConverterError):
-    """Raised when the Channel conveter fails"""
-    def __init__(self, argument: str):
-        self.argument = argument
+    """Raised when the Channel converter fails"""
+
+
+class TextChannelConverterError(ChannelConverterError):
+    """Raised when the Channel converter fails"""
 
 
 class UserConverterError(ConverterError):
-    """Raised when the Category conveter fails"""
-    def __init__(self, argument: str):
-        self.argument = argument
+    """Raised when the User converter fails"""
 
 
 class MemberConverterError(ConverterError):
-    """Raised when the Category conveter fails"""
-    def __init__(self, argument: str):
-        self.argument = argument
+    """Raised when the Member converter fails"""
 
 
 class UnionConverterError(ConverterError):
-    """Raised when all converters in a union fails"""
-    def __init__(self, argument: str):
-        self.argument = argument
+    """Raised when all converters in a union fail"""
 
 
 class MissingSetup(CommandError):
