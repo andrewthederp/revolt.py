@@ -15,12 +15,12 @@ __all__ = (
     "BadBoolArgument",
     "CategoryConverterError",
     "ChannelConverterError",
-    "TextChannelConverterError"
+    "TextChannelConverterError",
     "UserConverterError",
     "MemberConverterError",
     "UnionConverterError",
     "MissingSetup",
-    "CommandOnCooldown"
+    "CommandOnCooldown",
 )
 
 
