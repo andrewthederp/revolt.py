@@ -83,6 +83,7 @@ class State:
 
     def add_message(self, payload: MessagePayload) -> Message:
         message = Message(payload, self)
+        message.channel.last_message_id = message.id  # I am unsure if this is the best place to put it but eh
         if len(self.messages) >= self.max_messages:
             self.messages.pop()
 

@@ -148,20 +148,22 @@ class Message(Ulid):
             for mention in self.raw_mentions:
                 member = self.server.get_member(mention)
                 if member:
-                    self.mentions.append(member)
+                    mentions.append(member)
 
         else:
             for mention in self.raw_mentions:
                 user = self.state.get_user(mention)
                 if user:
-                    self.mentions.append(user)
+                    mentions.append(user)
 
         return mentions
 
     @property
     def jump_url(self) -> str:
         """The url to jump to this message"""
-        return f"https://app.revolt.chat/server/{self.server.id}/channel/{self.channel.id}/{self.id}"
+        if self.server_id:
+            return f"https://app.revolt.chat/server/{self.server_id}/channel/{self.channel.id}/{self.id}"
+        return f"https://app.revolt.chat/channel/{self.channel.id}/{self.id}"
 
     async def edit(self, *, content: Optional[str] = None, embeds: Optional[list[SendableEmbed]] = None) -> None:
         """Edits the message. The bot can only edit its own message
