@@ -252,12 +252,6 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         try:
             self.dispatch("command", context)
 
-            if not await self.global_check(context):
-                raise CheckError(f"the global check for the command failed")
-
-            if not await context.can_run():
-                raise CheckError(f"the check(s) for the command failed")
-
             output = await context.invoke()
             self.dispatch("after_command_invoke", context, output)
 

@@ -24,7 +24,7 @@ def check(check: Check[ClientT_D]) -> Callable[[T], T]:
     Parameters
     -----------
     check: Callable[[Context], Union[Any, Coroutine[Any, Any, Any]]]
-        The function to be called, must take one parameter, context and optionally be a coroutine, the return value denoating whether the check should pass or fail
+        The function to be called, must take one parameter, context and optionally be a coroutine, the return value denoting whether the check should pass or fail
     """
     def inner(func: T) -> T:
         if isinstance(func, Command):

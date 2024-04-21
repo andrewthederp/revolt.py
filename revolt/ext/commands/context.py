@@ -8,6 +8,7 @@ from revolt.utils import maybe_coroutine
 from .command import Command
 from .group import Group
 from .utils import ClientT_Co_D
+from .errors import CheckError
 
 if TYPE_CHECKING:
     from .view import StringView
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 __all__ = (
     "Context",
 )
+
 
 class Context(revolt.Messageable, Generic[ClientT_Co_D]):
     """Stores metadata the commands execution.
@@ -85,11 +87,17 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
                 except StopIteration:
                     pass
                 else:
-                    if subcommand := command.subcommands.get(subcommand_name):
-                        self.command = command = subcommand
+                    if subcommand := command.get_command(subcommand_name):
+                        self.command = subcommand
                         return await self.invoke()
 
                     self.view.undo()
+
+            if not await self.client.global_check(self):
+                raise CheckError(f"the global check for the command failed")
+
+            if not await self.can_run():
+                raise CheckError(f"the check(s) for the command failed")
 
             await command.run_cooldown(self)
             await command.parse_arguments(self)
@@ -98,7 +106,6 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
     async def can_run(self, command: Optional[Command[ClientT_Co_D]] = None) -> bool:
         """Runs all the command checks, and returns true if all of them pass"""
         command = command or self.command
-
         return all([await maybe_coroutine(check, self) for check in (command.checks if command else [])])
 
     async def send_help(self, argument: Command[Any] | Group[Any] | ClientT_Co_D | None = None) -> None:
