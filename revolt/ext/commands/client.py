@@ -27,11 +27,13 @@ __all__ = (
 V = TypeVar("V")
 T = TypeVar("T")
 
+
 @runtime_checkable
 class ExtensionProtocol(Protocol):
     @staticmethod
     def setup(client: CommandsClient) -> None:
         raise NotImplementedError
+
 
 class CommandsMeta(type):
     _commands: list[Command[Any]]
@@ -280,7 +282,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
 
         return True
 
-    def add_cog(self, cog: Cog[Self]) -> None:
+    async def add_cog(self, cog: Cog[Self]) -> None:
         """Adds a cog, this cog must subclass `Cog`.
 
         Parameters
@@ -288,9 +290,9 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         cog: :class:`Cog`
             The cog to be added
         """
-        cog._inject(self)
+        await cog._inject(self)
 
-    def remove_cog(self, cog_name: str) -> Cog[Self]:
+    async def remove_cog(self, cog_name: str) -> Cog[Self]:
         """Removes a cog.
 
         Parameters
@@ -304,11 +306,11 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
             The cog that was removed
         """
         cog = self.cogs.pop(cog_name)
-        cog._uninject(self)
+        await cog._uninject(self)
 
         return cog
 
-    def load_extension(self, name: str) -> None:
+    async def load_extension(self, name: str) -> None:
         """Loads an extension, this takes a module name and runs the setup function inside of it.
 
         Parameters
@@ -322,9 +324,9 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
             raise MissingSetup(f"'{extension}' is missing a setup function")
 
         self.extensions[name] = extension
-        extension.setup(self)
+        await extension.setup(self)
 
-    def unload_extension(self, name: str) -> None:
+    async def unload_extension(self, name: str) -> None:
         """Unloads an extension, this takes a module name and runs the teardown function inside of it.
 
         Parameters
@@ -339,7 +341,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         if teardown := getattr(extension, "teardown", None):
             teardown(self)
 
-    def reload_extension(self, name: str) -> None:
+    async def reload_extension(self, name: str) -> None:
         """Reloads an extension, this will unload and reload the extension.
 
         Parameters
@@ -347,8 +349,8 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         name: :class:`str`
             The name of the extension to be reloaded
         """
-        self.unload_extension(name)
-        self.load_extension(name)
+        await self.unload_extension(name)
+        await self.load_extension(name)
 
     def get_cog(self, name: str) -> Cog[Self]:
         """Gets a cog.
