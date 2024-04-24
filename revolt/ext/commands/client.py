@@ -134,7 +134,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         """
         raise NotImplementedError
 
-    def get_command(self, name: str) -> Command[Self]:
+    def get_command(self, name: str) -> Optional[Command[Self]]:
         """Gets a command.
 
         Parameters
@@ -147,7 +147,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         :class:`Command`
             The command with the name
         """
-        return self.all_commands[name]
+        return self.all_commands.get(name)
 
     def add_command(self, command: Command[Self]) -> None:
         """Adds a command, this is typically only used for dynamic commands, you should use the `commands.command` decorator for most usecases.
