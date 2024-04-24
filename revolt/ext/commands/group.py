@@ -11,6 +11,7 @@ __all__ = (
     "group"
 )
 
+
 class Group(Command[ClientT_Co_D]):
     """Class for holding info about a group command.
 
@@ -28,9 +29,9 @@ class Group(Command[ClientT_Co_D]):
 
     __slots__: tuple[str, ...] = ("subcommands",)
 
-    def __init__(self, callback: Callable[..., Coroutine[Any, Any, Any]], name: str, aliases: list[str]):
+    def __init__(self, callback: Callable[..., Coroutine[Any, Any, Any]], name: str, aliases: list[str], hidden: bool):
         self.subcommands: dict[str, Command[ClientT_Co_D]] = {}
-        super().__init__(callback, name, aliases=aliases)
+        super().__init__(callback, name, aliases=aliases, hidden=hidden)
 
     def command(self, *, name: Optional[str] = None, aliases: Optional[list[str]] = None, cls: type[Command[ClientT_Co_D]] = Command[ClientT_Co_D]) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Command[ClientT_Co_D]]:
         """A decorator that turns a function into a :class:`Command` and registers the command as a subcommand.
@@ -157,7 +158,14 @@ class Group(Command[ClientT_Co_D]):
 
         return command
 
-def group(*, name: Optional[str] = None, aliases: Optional[list[str]] = None, cls: type[Group[ClientT_D]] = Group) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Group[ClientT_D]]:
+
+def group(
+        *,
+        name: Optional[str] = None,
+        aliases: Optional[list[str]] = None,
+        cls: type[Group[ClientT_D]] = Group,
+        hidden: bool = False
+) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Group[ClientT_D]]:
     """A decorator that turns a function into a :class:`Group`
 
     Parameters
@@ -168,6 +176,8 @@ def group(*, name: Optional[str] = None, aliases: Optional[list[str]] = None, cl
         The aliases of the group command, defaults to no aliases
     cls: type[:class:`Group`]
         The class used for creating the command, this defaults to :class:`Group` but can be used to use a custom group subclass
+    hidden: :class:`bool`
+        A boolean that indicates if the command should be hidden from help
 
     Returns
     --------
@@ -176,6 +186,6 @@ def group(*, name: Optional[str] = None, aliases: Optional[list[str]] = None, cl
     """
 
     def inner(func: Callable[..., Coroutine[Any, Any, Any]]):
-        return cls(func, name or func.__name__, aliases or [])
+        return cls(func, name or func.__name__, aliases or [], hidden=hidden)
 
     return inner

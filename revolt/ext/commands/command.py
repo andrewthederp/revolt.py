@@ -52,7 +52,7 @@ class Command(Generic[ClientT_Co_D]):
     description: Optional[:class:`str`]
         The commands description if it has one
     hidden: :class:`bool`
-        Whether or not the command should be hidden from the help command
+        Whether the command should be hidden from the help command
     """
     __slots__ = ("callback", "name", "aliases", "signature", "checks", "parent", "_error_handler", "cog", "description", "usage", "parameters", "hidden", "cooldown", "cooldown_bucket")
 
@@ -68,7 +68,7 @@ class Command(Generic[ClientT_Co_D]):
             bucket: Optional[BucketType | Callable[[Context[ClientT_Co_D]], Coroutine[Any, Any, str]]] = None,
             description: str | None = None,
             hidden: bool = False,
-        ):
+    ):
         self.callback: Callable[..., Coroutine[Any, Any, Any]] = callback
         self.name: str = name
         self.aliases: list[str] = aliases or []
@@ -264,12 +264,14 @@ class Command(Generic[ClientT_Co_D]):
 
         return f"{' '.join(parents[::-1])} {self.name} {' '.join(parameters)}"
 
+
 def command(
     *,
     name: Optional[str] = None,
     aliases: Optional[list[str]] = None,
     cls: type[Command[ClientT_Co]] = Command,
-    usage: Optional[str] = None
+    usage: Optional[str] = None,
+    hidden: bool = False,
 ) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Command[ClientT_Co]]:
     """A decorator that turns a function into a :class:`Command`.n
 
@@ -283,6 +285,8 @@ def command(
         The class used for creating the command, this defaults to :class:`Command` but can be used to use a custom command subclass
     usage: Optional[:class:`str`]
         The signature for how the command should be called
+    hidden: :class:`bool`
+        A boolean that indicates if the command should be hidden from help
 
     Returns
     --------
@@ -290,6 +294,6 @@ def command(
         A function that takes the command callback and returns a :class:`Command`
     """
     def inner(func: Callable[..., Coroutine[Any, Any, Any]]) -> Command[ClientT_Co]:
-        return cls(func, name or func.__name__, aliases=aliases or [], usage=usage)
+        return cls(func, name or func.__name__, aliases=aliases or [], usage=usage, hidden=hidden)
 
     return inner
