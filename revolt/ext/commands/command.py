@@ -82,6 +82,8 @@ class Command(Generic[ClientT_Co_D]):
         self.cog: Optional[Cog[ClientT_Co_D]] = None
         self._error_handler: Callable[[Any, Context[ClientT_Co_D], Exception], Coroutine[Any, Any, Any]] = type(self)._default_error_handler
         self.description: str | None = description or callback.__doc__
+        if self.description:
+            self.description = self.description.strip()
         self.hidden: bool = hidden
 
     async def invoke(self, context: Context[ClientT_Co_D], *args: Any, **kwargs: Any) -> Any:

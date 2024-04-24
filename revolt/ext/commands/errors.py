@@ -18,6 +18,7 @@ __all__ = (
     "TextChannelConverterError",
     "UserConverterError",
     "MemberConverterError",
+    "RoleConverterError",
     "UnionConverterError",
     "MissingSetup",
     "CommandOnCooldown",
@@ -137,6 +138,10 @@ class UserConverterError(ConverterError):
 
 class MemberConverterError(ConverterError):
     """Raised when the Member converter fails"""
+
+
+class RoleConverterError(commands.ConverterError):
+    """Raised when the Role converter fails"""
 
 
 class UnionConverterError(ConverterError):

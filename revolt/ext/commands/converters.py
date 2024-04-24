@@ -4,7 +4,7 @@ import re
 from typing import TYPE_CHECKING, Annotated, TypeVar
 
 import revolt
-from revolt import Category, Channel, Member, User, utils, TextChannel, VoiceChannel, ChannelType
+from revolt import Category, Channel, Member, User, utils, TextChannel, VoiceChannel, ChannelType, Role
 
 from .context import Context
 from .errors import (BadBoolArgument, CategoryConverterError,
@@ -14,7 +14,7 @@ from .errors import (BadBoolArgument, CategoryConverterError,
 if TYPE_CHECKING:
     from .client import CommandsClient
 
-__all__: tuple[str, ...] = ("bool_converter", "category_converter", "channel_converter", "user_converter", "member_converter", "IntConverter", "BoolConverter", "CategoryConverter", "UserConverter", "MemberConverter", "ChannelConverter", "TextChannelConverter")
+__all__: tuple[str, ...] = ("bool_converter", "category_converter", "channel_converter", "text_channel_converter", "user_converter", "member_converter", "role_converter", "int_converter", "IntConverter", "BoolConverter", "CategoryConverter", "UserConverter", "MemberConverter", "ChannelConverter", "TextChannelConverter", "RoleConverter")
 
 channel_regex: re.Pattern[str] = re.compile("<?#?([A-z0-9]{26})>?")
 user_regex: re.Pattern[str] = re.compile("<?@?([A-z0-9]{26})>?")
@@ -139,14 +139,27 @@ def member_converter(arg: str, context: Context[ClientT]) -> Member:
     raise MemberConverterError(arg)
 
 
+def role_converter(arg: str, context: commands.Context):
+    role = context.server.get_role(arg)
+
+    if not role:
+        role = revolt.utils.get(context.server.roles, name=arg)
+
+    if not role:
+        raise commands.RoleConverterError(f"Could not find role {arg}")
+
+    return role
+
+
 def int_converter(arg: str, _: Context[ClientT]) -> int:
     return int(arg)
 
 
 IntConverter = Annotated[int, int_converter]
 BoolConverter = Annotated[bool, bool_converter]
-CategoryConverter = Annotated[Category, category_converter]
 UserConverter = Annotated[User, user_converter]
 MemberConverter = Annotated[Member, member_converter]
+RoleConverter = Annotated[Role, role_converter]
 ChannelConverter = Annotated[Channel, channel_converter]
+CategoryConverter = Annotated[Category, category_converter]
 TextChannelConverter = Annotated[TextChannel, text_channel_converter]
