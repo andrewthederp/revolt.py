@@ -140,7 +140,7 @@ class MemberConverterError(ConverterError):
     """Raised when the Member converter fails"""
 
 
-class RoleConverterError(commands.ConverterError):
+class RoleConverterError(ConverterError):
     """Raised when the Role converter fails"""
 
 

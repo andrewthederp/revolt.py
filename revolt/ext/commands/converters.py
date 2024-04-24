@@ -139,7 +139,7 @@ def member_converter(arg: str, context: Context[ClientT]) -> Member:
     raise MemberConverterError(arg)
 
 
-def role_converter(arg: str, context: commands.Context):
+def role_converter(arg: str, context: Context[ClientT]) -> Role:
     role = context.server.get_role(arg)
 
     if not role:
