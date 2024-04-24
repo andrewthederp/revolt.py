@@ -27,7 +27,9 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
     command: Optional[:class:`Command`]
         The command, this can be `None` when no command was found and the error handler is being executed
     invoked_with: :class:`str`
-        The command name that was used, this can be an alias, the commands name or a command that doesnt exist
+        The command name that was used, this can be an alias, the commands name or a command that doesn't exist
+    prefix: :class:`str`
+        The prefix that triggered the command
     message: :class:`Message`
         The message that was sent to invoke the command
     channel: :class:`Messageable`
@@ -48,9 +50,10 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
     async def _get_channel_id(self) -> str:
         return self.channel.id
 
-    def __init__(self, command: Optional[Command[ClientT_Co_D]], invoked_with: str, view: StringView, message: revolt.Message, client: ClientT_Co_D):
+    def __init__(self, command: Optional[Command[ClientT_Co_D]], invoked_with: str, prefix: str, view: StringView, message: revolt.Message, client: ClientT_Co_D):
         self.command: Command[ClientT_Co_D] | None = command
         self.invoked_with: str = invoked_with
+        self.prefix: str = prefix
         self.view: StringView = view
         self.message: revolt.Message = message
         self.client: ClientT_Co_D = client

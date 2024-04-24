@@ -249,7 +249,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
             context = context_cls(None, command_name, view, message, self)
             return self.dispatch("command_error", context, CommandNotFound(command_name))
 
-        context = context_cls(command, command_name, view, message, self)
+        context = context_cls(command, command_name, prefix, view, message, self)
 
         try:
             self.dispatch("command", context)
@@ -352,7 +352,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         await self.unload_extension(name)
         await self.load_extension(name)
 
-    def get_cog(self, name: str) -> Cog[Self]:
+    def get_cog(self, name: str) -> Optional[Cog[Self]]:
         """Gets a cog.
 
         Parameters
@@ -365,7 +365,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
         :class:`Cog`
             The cog that was requested
         """
-        return self.cogs[name]
+        return self.cogs.get(name)
 
     def get_extension(self, name: str) -> ExtensionProtocol:
         """Gets an extension.
