@@ -9,7 +9,7 @@ from revolt import Category, Channel, Member, User, utils, TextChannel, VoiceCha
 from .context import Context
 from .errors import (BadBoolArgument, CategoryConverterError,
                      ChannelConverterError, MemberConverterError, ServerOnly,
-                     UserConverterError, TextChannelConverterError)
+                     UserConverterError, TextChannelConverterError, RoleConverterError)
 
 if TYPE_CHECKING:
     from .client import CommandsClient
@@ -146,7 +146,7 @@ def role_converter(arg: str, context: Context[ClientT]) -> Role:
         role = revolt.utils.get(context.server.roles, name=arg)
 
     if not role:
-        raise commands.RoleConverterError(f"Could not find role {arg}")
+        raise RoleConverterError(f"Could not find role {arg}")
 
     return role
 
