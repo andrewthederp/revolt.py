@@ -7,7 +7,7 @@ from .category import Category
 from .invite import Invite
 from .permissions import Permissions
 from .role import Role
-from .utils import Ulid
+from .utils import Ulid, Object
 from .channel import Channel, TextChannel, VoiceChannel
 from .member import Member
 
@@ -331,10 +331,8 @@ class Server(Ulid):
         """Sets the default server permissions.
         Parameters
         -----------
-        server_permissions: Optional[:class:`ServerPermissions`]
+        permissions: Optional[:class:`Permissions`]
             The new default server permissions
-        channel_permissions: Optional[:class:`ChannelPermissions`]
-            the new default channel permissions
         """
 
         await self.state.http.set_server_default_permissions(self.id, permissions.value)
@@ -429,6 +427,29 @@ class Server(Ulid):
         payload = await self.state.http.fetch_bans(self.id)
 
         return [ServerBan(ban, self.state) for ban in payload["bans"]]
+
+    async def ban(self, obj: Object, *, reason: Optional[str] = None) -> None:
+        """Bans the member from the server
+
+        Parameters
+        -----------
+        obj: :class:`Object`
+            an object to ban from the server
+        reason: Optional[:class:`str`]
+            The reason for the ban
+        """
+        await self.state.http.ban_member(self.id, obj.id, reason)
+
+    async def unban(self, obj: Object) -> None:
+        """
+        Unbans the member from the server
+
+        Parameters
+        -----------
+        obj: :class:`Object`
+            an object to unban from the server
+        """
+        await self.state.http.unban_member(self.id, obj.id)
 
     async def create_role(self, name: str) -> Role:
         """Creates a role in the server

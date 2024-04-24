@@ -10,7 +10,7 @@ import ulid
 from aiohttp import ClientSession
 from typing_extensions import ParamSpec
 
-__all__ = ("_Missing", "Missing", "copy_doc", "maybe_coroutine", "get", "client_session", "parse_timestamp")
+__all__ = ("_Missing", "Missing", "copy_doc", "maybe_coroutine", "get", "client_session", "parse_timestamp", "Ulid", "Object")
 
 
 class _Missing:
