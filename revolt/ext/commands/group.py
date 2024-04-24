@@ -33,7 +33,7 @@ class Group(Command[ClientT_Co_D]):
         self.subcommands: dict[str, Command[ClientT_Co_D]] = {}
         super().__init__(callback, name, aliases=aliases, hidden=hidden)
 
-    def command(self, *, name: Optional[str] = None, aliases: Optional[list[str]] = None, cls: type[Command[ClientT_Co_D]] = Command[ClientT_Co_D]) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Command[ClientT_Co_D]]:
+    def command(self, *, name: Optional[str] = None, aliases: Optional[list[str]] = None, cls: type[Command[ClientT_Co_D]] = Command[ClientT_Co_D], hidden: bool = False) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Command[ClientT_Co_D]]:
         """A decorator that turns a function into a :class:`Command` and registers the command as a subcommand.
 
         Parameters
@@ -44,6 +44,8 @@ class Group(Command[ClientT_Co_D]):
             The aliases of the command, defaults to no aliases
         cls: type[:class:`Command`]
             The class used for creating the command, this defaults to :class:`Command` but can be used to use a custom command subclass
+        hidden: :class:`bool`
+            A boolean that indicates if the command should be hidden from help
 
         Returns
         --------
@@ -51,7 +53,7 @@ class Group(Command[ClientT_Co_D]):
             A function that takes the command callback and returns a :class:`Command`
         """
         def inner(func: Callable[..., Coroutine[Any, Any, Any]]):
-            command = cls(func, name or func.__name__, aliases=aliases or [])
+            command = cls(func, name or func.__name__, aliases=aliases or [], hidden=hidden)
             command.parent = self
             self.subcommands[command.name] = command
 
@@ -62,7 +64,7 @@ class Group(Command[ClientT_Co_D]):
 
         return inner
 
-    def group(self, *, name: Optional[str] = None, aliases: Optional[list[str]] = None, cls: Optional[type[Group[ClientT_Co_D]]] = None) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Group[ClientT_Co_D]]:
+    def group(self, *, name: Optional[str] = None, aliases: Optional[list[str]] = None, cls: Optional[type[Group[ClientT_Co_D]]] = None, hidden: bool = False) -> Callable[[Callable[..., Coroutine[Any, Any, Any]]], Group[ClientT_Co_D]]:
         """A decorator that turns a function into a :class:`Group` and registers the command as a subcommand
 
         Parameters
@@ -73,6 +75,8 @@ class Group(Command[ClientT_Co_D]):
             The aliases of the group command, defaults to no aliases
         cls: type[:class:`Group`]
             The class used for creating the command, this defaults to :class:`Group` but can be used to use a custom group subclass
+        hidden: :class:`bool`
+            A boolean that indicates if the command should be hidden from help
 
         Returns
         --------
@@ -82,7 +86,7 @@ class Group(Command[ClientT_Co_D]):
         cls = cls or type(self)
 
         def inner(func: Callable[..., Coroutine[Any, Any, Any]]):
-            command = cls(func, name or func.__name__, aliases or [])
+            command = cls(func, name or func.__name__, aliases or [], hidden=hidden)
             command.parent = self
             self.subcommands[command.name] = command
 
