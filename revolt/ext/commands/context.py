@@ -45,7 +45,7 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
     client: :class:`CommandsClient`
         The revolt client
     """
-    __slots__ = ("command", "invoked_with", "args", "message", "channel", "author", "view", "kwargs", "state", "client", "server_id")
+    __slots__ = ("command", "invoked_with", "prefix", "args", "message", "channel", "author", "view", "kwargs", "state", "client", "server_id")
 
     async def _get_channel_id(self) -> str:
         return self.channel.id
