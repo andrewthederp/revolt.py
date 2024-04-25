@@ -12,6 +12,7 @@ from revolt.utils import maybe_coroutine
 from .errors import CommandOnCooldown, InvalidLiteralArgument, UnionConverterError, MissingRequiredArgument, ConverterError
 from .utils import ClientT_Co_D, evaluate_parameters, ClientT_Co
 from .cooldown import BucketType, CooldownMapping
+from .parameter import RevoltParameter
 
 if TYPE_CHECKING:
     from .checks import Check
@@ -74,7 +75,7 @@ class Command(Generic[ClientT_Co_D]):
         self.aliases: list[str] = aliases or []
         self.usage: str | None = usage
         self.signature: inspect.Signature = inspect.signature(self.callback)
-        self.parameters: list[inspect.Parameter] = evaluate_parameters(self.signature.parameters.values(), getattr(callback, "__globals__", {}))
+        self.parameters: list[RevoltParameter] = evaluate_parameters(self.signature.parameters.values(), getattr(callback, "__globals__", {}))[2:]
         self.checks: list[Check[ClientT_Co_D]] = checks or getattr(callback, "_checks", [])
         self.cooldown: CooldownMapping | None = cooldown or getattr(callback, "_cooldown", None)
         self.cooldown_bucket: BucketType | Callable[[Context[ClientT_Co_D]], Coroutine[Any, Any, str]] = bucket or getattr(callback, "_bucket", BucketType.default)
@@ -172,7 +173,10 @@ class Command(Generic[ClientT_Co_D]):
                 return await cls.handle_origin(context, origin, annotation, parameter_name, arg)
             else:
                 try:
-                    return await maybe_coroutine(annotation, arg, context)
+                    if "convert" in dir(annotation):
+                        return await maybe_coroutine(annotation.convert, context, arg)
+                    else:
+                        return await maybe_coroutine(annotation, context, arg)
                 except ConverterError as exc:
                     exc.parameter_name = parameter_name
                     raise exc
@@ -181,14 +185,13 @@ class Command(Generic[ClientT_Co_D]):
 
     async def parse_arguments(self, context: Context[ClientT_Co_D]) -> None:
         # please pr if you can think of a better way to do this
-
-        for parameter in self.parameters[2:]:
+        for parameter in self.parameters:
             if parameter.kind == parameter.KEYWORD_ONLY:
                 string = context.view.get_rest()
 
                 if string == "":
                     if parameter.default is not parameter.empty:
-                        context.kwargs[parameter.name] = parameter.default
+                        context.kwargs[parameter.name] = await parameter.get_default(context)
                     else:
                         raise MissingRequiredArgument(parameter.name)
                 else:
@@ -206,7 +209,7 @@ class Command(Generic[ClientT_Co_D]):
                     arg = await self.convert_argument(rest, parameter.annotation, parameter.name, context)
                 except StopIteration:
                     if parameter.default is not parameter.empty:
-                        arg = parameter.default
+                        arg = await parameter.get_default(context)
                         context.view.undo()
                     else:
                         raise MissingRequiredArgument(parameter.name)
@@ -250,17 +253,17 @@ class Command(Generic[ClientT_Co_D]):
 
         parameters: list[str] = []
 
-        for parameter in self.parameters[2:]:
+        for parameter in self.parameters:
             if parameter.kind == parameter.POSITIONAL_OR_KEYWORD:
-                if parameter.default is not parameter.empty:
-                    parameters.append(f"[{parameter.name}]")
-                else:
+                if parameter.required:
                     parameters.append(f"<{parameter.name}>")
-            elif parameter.kind == parameter.KEYWORD_ONLY:
-                if parameter.default is not parameter.empty:
-                    parameters.append(f"[{parameter.name}]")
                 else:
+                    parameters.append(f"[{parameter.name}={parameter.display_default}]")
+            elif parameter.kind == parameter.KEYWORD_ONLY:
+                if parameter.required:
                     parameters.append(f"<{parameter.name}...>")
+                else:
+                    parameters.append(f"[{parameter.name}={parameter.display_default}]")
             elif parameter.kind == parameter.VAR_POSITIONAL:
                 parameters.append(f"[{parameter.name}...]")
 

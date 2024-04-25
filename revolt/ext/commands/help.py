@@ -120,7 +120,6 @@ class DefaultHelpCommand(HelpCommand[ClientT_Co_D]):
         if command.aliases:
             lines.append(f"  Aliases: {', '.join(command.aliases)}")
 
-
         if command.description:
             lines.append(command.description)
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from inspect import Parameter
 from typing import TYPE_CHECKING, Any, Iterable
+from .parameter import RevoltParameter
 
 from typing_extensions import TypeVar
 
@@ -22,9 +23,19 @@ def evaluate_parameters(parameters: Iterable[Parameter], globals: dict[str, Any]
     new_parameters: list[Parameter] = []
 
     for parameter in parameters:
-        if parameter.annotation is not parameter.empty:
-            if isinstance(parameter.annotation, str):
-                parameter = parameter.replace(annotation=eval(parameter.annotation, globals))
+        if isinstance(parameter.default, RevoltParameter):
+            parameter = parameter.default
+        else:
+            annotation = parameter.annotation
+            if parameter.annotation is not parameter.empty:
+                if isinstance(parameter.annotation, str):
+                    annotation = eval(annotation, globals)
+
+            parameter = RevoltParameter(
+                name=parameter.name,
+                kind=parameter.kind,
+                annotation=annotation,
+            )
 
         new_parameters.append(parameter)
 

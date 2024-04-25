@@ -22,7 +22,7 @@ user_regex: re.Pattern[str] = re.compile("<?@?([A-z0-9]{26})>?")
 ClientT = TypeVar("ClientT", bound="CommandsClient")
 
 
-def bool_converter(arg: str, _: Context[ClientT]) -> bool:
+def bool_converter(_: Context[ClientT], arg: str) -> bool:
     lowered = arg.lower()
     if lowered in ("yes", "true", "ye", "y", "1", "on", "enable"):
         return True
@@ -32,7 +32,7 @@ def bool_converter(arg: str, _: Context[ClientT]) -> bool:
         raise BadBoolArgument(lowered)
 
 
-def category_converter(arg: str, context: Context[ClientT]) -> Category:
+def category_converter(context: Context[ClientT], arg: str) -> Category:
     if not context.server_id:
         raise ServerOnly
 
@@ -47,7 +47,7 @@ def category_converter(arg: str, context: Context[ClientT]) -> Category:
     raise CategoryConverterError(arg)
 
 
-def channel_converter(arg: str, context: Context[ClientT]) -> Channel:
+def channel_converter(context: Context[ClientT], arg: str) -> Channel:
     if not context.server_id:
         raise ServerOnly
 
@@ -65,7 +65,7 @@ def channel_converter(arg: str, context: Context[ClientT]) -> Channel:
     raise ChannelConverterError(arg)
 
 
-def text_channel_converter(arg: str, context: Context[ClientT]) -> Channel:
+def text_channel_converter(context: Context[ClientT], arg: str) -> Channel:
     if not context.server_id:
         raise ServerOnly
 
@@ -83,7 +83,7 @@ def text_channel_converter(arg: str, context: Context[ClientT]) -> Channel:
     raise TextChannelConverterError(arg)
 
 
-def user_converter(arg: str, context: Context[ClientT]) -> User:
+def user_converter(context: Context[ClientT], arg: str) -> User:
     if match := user_regex.match(arg):
         arg = match.group(1)
 
@@ -113,7 +113,7 @@ def user_converter(arg: str, context: Context[ClientT]) -> User:
     raise UserConverterError(arg)
 
 
-def member_converter(arg: str, context: Context[ClientT]) -> Member:
+def member_converter(context: Context[ClientT], arg: str) -> Member:
     if not context.server_id:
         raise ServerOnly
 
@@ -139,7 +139,7 @@ def member_converter(arg: str, context: Context[ClientT]) -> Member:
     raise MemberConverterError(arg)
 
 
-def role_converter(arg: str, context: Context[ClientT]) -> Role:
+def role_converter(context: Context[ClientT], arg: str) -> Role:
     role = context.server.get_role(arg)
 
     if not role:
@@ -151,7 +151,7 @@ def role_converter(arg: str, context: Context[ClientT]) -> Role:
     return role
 
 
-def int_converter(arg: str, _: Context[ClientT]) -> int:
+def int_converter(_: Context[ClientT], arg: str) -> int:
     return int(arg)
 
 

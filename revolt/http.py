@@ -60,7 +60,7 @@ class HttpClient:
             headers["Content-Type"] = "application/json"
 
             if nonce:
-                json["nonce"] = ulid.new().str # type: ignore
+                json["nonce"] = ulid.new().str  # type: ignore
 
             kwargs["data"] = _json.dumps(json)
 
@@ -70,6 +70,8 @@ class HttpClient:
             kwargs["params"] = params
 
         async with self.session.request(method, url, **kwargs) as resp:
+            # resp.headers
+            # (reset_after/remaining)/1000
             text = await resp.text()
             if text:
                 try:
@@ -114,7 +116,7 @@ class HttpClient:
         json: dict[str, Any] = {}
 
         if content:
-            json["content"] = content
+            json["content"] = content if isinstance(content, str) else repr(content)
 
         if embeds:
             json["embeds"] = embeds
