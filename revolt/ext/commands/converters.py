@@ -1,20 +1,39 @@
 from __future__ import annotations
 
+import inspect
 import re
-from typing import TYPE_CHECKING, Annotated, TypeVar
+from typing import (Annotated, Any, Literal, TYPE_CHECKING, TypeVar, Union, get_args, get_origin)
 
 import revolt
-from revolt import Category, Channel, Member, User, utils, TextChannel, VoiceChannel, ChannelType, Role
-
-from .context import Context
-from .errors import (BadBoolArgument, CategoryConverterError,
-                     ChannelConverterError, MemberConverterError, ServerOnly,
-                     UserConverterError, TextChannelConverterError, RoleConverterError)
+from revolt import Category, Channel, ChannelType, Member, Role, TextChannel, User, utils
+from revolt.utils import maybe_coroutine
+from .errors import (BadBoolArgument, CategoryConverterError, ChannelConverterError, MemberConverterError,
+                     RoleConverterError, ServerOnly, TextChannelConverterError, UserConverterError, ConverterError)
+from .utils import ClientT_Co_D
 
 if TYPE_CHECKING:
-    from .client import CommandsClient
+    from .context import Context
 
-__all__: tuple[str, ...] = ("bool_converter", "category_converter", "channel_converter", "text_channel_converter", "user_converter", "member_converter", "role_converter", "int_converter", "IntConverter", "BoolConverter", "CategoryConverter", "UserConverter", "MemberConverter", "ChannelConverter", "TextChannelConverter", "RoleConverter")
+__all__: tuple[str, ...] = (
+    "bool_converter",
+    "category_converter",
+    "channel_converter",
+    "text_channel_converter",
+    "user_converter",
+    "member_converter",
+    "role_converter",
+    "int_converter",
+    "IntConverter",
+    "BoolConverter",
+    "CategoryConverter",
+    "UserConverter",
+    "MemberConverter",
+    "ChannelConverter",
+    "TextChannelConverter",
+    "RoleConverter",
+    "handle_origin",
+    "convert_argument"
+)
 
 channel_regex: re.Pattern[str] = re.compile("<?#?([A-z0-9]{26})>?")
 user_regex: re.Pattern[str] = re.compile("<?@?([A-z0-9]{26})>?")
@@ -155,6 +174,7 @@ def int_converter(_: Context[ClientT], arg: str) -> int:
     return int(arg)
 
 
+# These will remain for legacy support!
 IntConverter = Annotated[int, int_converter]
 BoolConverter = Annotated[bool, bool_converter]
 UserConverter = Annotated[User, user_converter]
@@ -163,3 +183,72 @@ RoleConverter = Annotated[Role, role_converter]
 ChannelConverter = Annotated[Channel, channel_converter]
 CategoryConverter = Annotated[Category, category_converter]
 TextChannelConverter = Annotated[TextChannel, text_channel_converter]
+
+_converting_lookup = {
+    int: int_converter,
+    bool: bool_converter,
+    User: user_converter,
+    Member: member_converter,
+    Role: role_converter,
+    Channel: channel_converter,
+    TextChannel: text_channel_converter,
+    Category: category_converter
+}
+
+
+async def handle_origin(
+        context: Context[ClientT_Co_D], origin: Any, annotation: Any, parameter_name: str, arg: str
+        ) -> Any:
+    if origin is Union:
+        possible_converters = get_args(annotation)
+        for converter in possible_converters:
+            if converter is not type(None):
+                try:
+                    return await convert_argument(context, arg, converter, parameter_name)
+                except Exception:
+                    pass
+
+        if type(None) in possible_converters:  # typing.Optional
+            context.view.undo()
+            return None
+
+        raise UnionConverterError(arg)
+
+    elif origin is Annotated:
+        annotated_args = get_args(annotation)
+
+        if origin := get_origin(annotated_args[0]):
+            return await handle_origin(context, origin, annotated_args[1], parameter_name, arg)
+        else:
+            return await convert_argument(context, arg, annotated_args[1], parameter_name)
+
+    elif origin is Literal:
+        args = get_args(annotation)
+        if arg in args:
+            return arg
+        else:
+            error = InvalidLiteralArgument(arg, args)
+            error.parameter_name = parameter_name
+            raise error
+
+
+async def convert_argument(context: Context[ClientT_Co_D], arg: str, annotation: Any, parameter_name: str) -> Any:
+    if annotation is not inspect.Signature.empty:
+        if annotation is str:  # no converting is needed - it's already a string
+            return arg
+
+        annotation = _converting_lookup.get(annotation, annotation)
+        origin: Any
+        if origin := get_origin(annotation):
+            return await handle_origin(context, origin, annotation, parameter_name, arg)
+        else:
+            try:
+                if "convert" in dir(annotation):
+                    return await maybe_coroutine(annotation.convert, context, arg)
+                else:
+                    return await maybe_coroutine(annotation, context, arg)
+            except ConverterError as exc:
+                exc.parameter_name = parameter_name
+                raise exc
+    else:
+        return arg

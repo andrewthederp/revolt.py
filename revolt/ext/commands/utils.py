@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .context import Context
 
 
-__all__ = ("evaluate_parameters",)
+__all__ = ("evaluate_parameters", "ClientT_Co", "ClientT_D", "ClientT_Co_D", "ContextT")
 
 ClientT_Co = TypeVar("ClientT_Co", bound="CommandsClient", covariant=True)
 ClientT_D = TypeVar("ClientT_D", bound="CommandsClient", default="CommandsClient")
