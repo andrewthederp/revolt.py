@@ -116,3 +116,7 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
 
         command = self.client.get_command("help")
         await command.invoke(self, argument)
+
+    async def reply(self, *args, **kwargs):
+        replies = [revolt.MessageReply(message=self.message, mention=True)]
+        await self.send(*args, replies=replies, **kwargs)
