@@ -246,7 +246,7 @@ class CommandsClient(revolt.Client, metaclass=CommandsMeta):
 
         command = self.get_command(command_name)
         if not command:
-            context = context_cls(None, command_name, view, message, self)
+            context = context_cls(None, command_name, prefix, view, message, self)
             return self.dispatch("command_error", context, CommandNotFound(command_name))
 
         context = context_cls(command, command_name, prefix, view, message, self)
