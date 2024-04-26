@@ -13,7 +13,7 @@ __all__ = (
     "ConverterError",
     "InvalidLiteralArgument",
     "BadBoolArgument",
-    "IntConverterError"
+    "IntConverterError",
     "CategoryConverterError",
     "ChannelConverterError",
     "TextChannelConverterError",
