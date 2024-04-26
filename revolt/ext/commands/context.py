@@ -119,4 +119,4 @@ class Context(revolt.Messageable, Generic[ClientT_Co_D]):
 
     async def reply(self, *args, **kwargs):
         replies = [revolt.MessageReply(message=self.message, mention=True)]
-        await self.send(*args, replies=replies, **kwargs)
+        return await self.send(*args, replies=replies, **kwargs)
