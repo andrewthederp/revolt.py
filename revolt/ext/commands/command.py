@@ -156,7 +156,7 @@ class Command(Generic[ClientT_Co_D]):
                 except StopIteration:
                     if parameter.default is not parameter.empty:
                         arg = await parameter.get_default(context)
-                        context.view.undo()
+                        # context.view.undo()  # :derp:
                     else:
                         raise MissingRequiredArgument(parameter.name)
 
