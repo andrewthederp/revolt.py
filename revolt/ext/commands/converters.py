@@ -8,7 +8,7 @@ import revolt
 from revolt import Category, Channel, ChannelType, Member, Role, TextChannel, User, utils
 from revolt.utils import maybe_coroutine
 from .errors import (BadBoolArgument, CategoryConverterError, ChannelConverterError, MemberConverterError,
-                     RoleConverterError, ServerOnly, TextChannelConverterError, UserConverterError, ConverterError)
+                     RoleConverterError, ServerOnly, TextChannelConverterError, UserConverterError, ConverterError, IntConverterError)
 from .utils import ClientT_Co_D
 
 if TYPE_CHECKING:
@@ -171,7 +171,10 @@ def role_converter(context: Context[ClientT], arg: str) -> Role:
 
 
 def int_converter(_: Context[ClientT], arg: str) -> int:
-    return int(arg)
+    try:
+        return int(arg)
+    except ValueError:
+        raise IntConverterError(arg)
 
 
 # These will remain for legacy support!

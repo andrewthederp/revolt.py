@@ -13,6 +13,7 @@ __all__ = (
     "ConverterError",
     "InvalidLiteralArgument",
     "BadBoolArgument",
+    "IntConverterError"
     "CategoryConverterError",
     "ChannelConverterError",
     "TextChannelConverterError",
@@ -118,6 +119,10 @@ class InvalidLiteralArgument(ConverterError):
 
 class BadBoolArgument(ConverterError):
     """Raised when the bool converter fails"""
+
+
+class IntConverterError(ConverterError):
+    """Raised when the int converter fails"""
 
 
 class CategoryConverterError(ConverterError):
