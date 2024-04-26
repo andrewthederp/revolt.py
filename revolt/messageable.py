@@ -29,13 +29,15 @@ class Messageable:
     async def _get_channel_id(self) -> str:
         raise NotImplementedError
 
-    async def send(self, content: Optional[str] = None, *, embeds: Optional[list[SendableEmbed]] = None, embed: Optional[SendableEmbed] = None, attachments: Optional[list[File]] = None, replies: Optional[list[MessageReply]] = None, reply: Optional[MessageReply] = None, masquerade: Optional[Masquerade] = None, interactions: Optional[MessageInteractions] = None) -> Message:
+    async def send(self, content: Optional[str] = None, *, embeds: Optional[list[SendableEmbed]] = None, embed: Optional[SendableEmbed] = None, file: Optional[File] = None, attachments: Optional[list[File]] = None, replies: Optional[list[MessageReply]] = None, reply: Optional[MessageReply] = None, masquerade: Optional[Masquerade] = None, interactions: Optional[MessageInteractions] = None) -> Message:
         """Sends a message in a channel, you must send at least one of either `content`, `embeds` or `attachments`
 
         Parameters
         -----------
         content: Optional[:class:`str`]
             The content of the message, this will not include system message's content
+        file: Optional[:class:`File`]
+            The file of the message
         attachments: Optional[list[:class:`File`]]
             The attachments of the message
         embed: Optional[:class:`SendableEmbed`]
@@ -43,6 +45,8 @@ class Messageable:
         embeds: Optional[list[:class:`SendableEmbed`]]
             The embeds to send with the message
         replies: Optional[list[:class:`MessageReply`]]
+            The list of messages to reply to.
+        reply: Optional[:class:`MessageReply`]
             The list of messages to reply to.
         masquerade: Optional[:class:`Masquerade`]
             The masquerade for the message, this can overwrite the username and avatar shown
@@ -54,11 +58,23 @@ class Messageable:
         :class:`Message`
             The message that was just sent
         """
+        if embeds is None:
+            embeds = []
+
+        if attachments is None:
+            attachments = []
+
+        if replies is None:
+            replies = []
+
         if embed:
-            embeds = [embed]
+            embeds.append(embed)
+
+        if file:
+            attachments.append(file)
 
         if reply:
-            replies = [reply]
+            replies.append(reply)
 
         embed_payload = [embed.to_dict() for embed in embeds] if embeds else None
         reply_payload = [reply.to_dict() for reply in replies] if replies else None
@@ -67,7 +83,6 @@ class Messageable:
 
         message = await self.state.http.send_message(await self._get_channel_id(), content, embed_payload, attachments, reply_payload, masquerade_payload, interactions_payload)
         return self.state.add_message(message)
-
 
     async def fetch_message(self, message_id: str) -> Message:
         """Fetches a message from the channel

@@ -165,16 +165,24 @@ class Message(Ulid):
             return f"https://app.revolt.chat/server/{self.server_id}/channel/{self.channel.id}/{self.id}"
         return f"https://app.revolt.chat/channel/{self.channel.id}/{self.id}"
 
-    async def edit(self, *, content: Optional[str] = None, embeds: Optional[list[SendableEmbed]] = None) -> None:
+    async def edit(self, *, content: Optional[str] = None, embed: Optional[SendableEmbed] = None, embeds: Optional[list[SendableEmbed]] = None) -> None:
         """Edits the message. The bot can only edit its own message
 
         Parameters
         -----------
         content: :class:`str`
             The new content of the message
+        embed: :class:`SendableEmbed`
+            The new embed of the message
         embeds: list[:class:`SendableEmbed`]
             The new embeds of the message
         """
+
+        if embeds is None:
+            embeds = []
+
+        if embed:
+            embeds.append(embed)
 
         new_embeds = [embed.to_dict() for embed in embeds] if embeds else None
 
