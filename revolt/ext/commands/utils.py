@@ -35,6 +35,7 @@ def evaluate_parameters(parameters: Iterable[Parameter], globals: dict[str, Any]
                 name=parameter.name,
                 kind=parameter.kind,
                 annotation=annotation,
+                default=parameter.default
             )
 
         new_parameters.append(parameter)
