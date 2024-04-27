@@ -1,7 +1,7 @@
 import inspect
 from typing import Any, TYPE_CHECKING, TypeVar
 
-from revolt.utils import maybe_coroutine
+from revolt.utils import maybe_coroutine, Missing
 
 if TYPE_CHECKING:
     pass
@@ -49,10 +49,46 @@ class RevoltParameter(inspect.Parameter):
             return await maybe_coroutine(self.default, ctx)
         return self.default
 
+    def replace(
+        self,
+        *,
+        name: str = Missing,
+        kind: Any = Missing,
+        default: Any = Missing,
+        annotation: Any = Missing,
+        description: str = Missing,
+        displayed_default: Any = Missing,
+        displayed_name: Any = Missing,
+    ):
+        if name is Missing:
+            name = self._name
+        if kind is Missing:
+            kind = self._kind
+        if default is Missing:
+            default = self._default
+        if annotation is Missing:
+            annotation = self._annotation
+        if description is Missing:
+            description = self._description
+        if displayed_default is Missing:
+            displayed_default = self._displayed_default
+        if displayed_name is Missing:
+            displayed_name = self._displayed_name
+
+        return RevoltParameter(
+            name=name,
+            kind=kind,
+            default=default,
+            annotation=annotation,
+            description=description,
+            displayed_default=displayed_default,
+            displayed_name=displayed_name,
+        )
+
 
 def parameter(
         *,
-        displayed_name: str,
+        displayed_name: str = empty,
         default: Any = empty,
         converter: Any = empty,
         description: str = None,
@@ -60,7 +96,7 @@ def parameter(
         kind: Any = inspect.Parameter.POSITIONAL_OR_KEYWORD
 ):
     return RevoltParameter(
-        displayed_name,
+        "_override",
         kind,
         default=default,
         annotation=converter,

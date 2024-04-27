@@ -24,7 +24,10 @@ def evaluate_parameters(parameters: Iterable[Parameter], globals: dict[str, Any]
 
     for parameter in parameters:
         if isinstance(parameter.default, RevoltParameter):
-            parameter = parameter.default
+            if parameter.default.name == "_override":
+                parameter = parameter.default.replace(name=parameter.name)
+            else:
+                parameter = parameter.default
         else:
             annotation = parameter.annotation
             if parameter.annotation is not parameter.empty:
