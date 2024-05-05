@@ -213,6 +213,11 @@ class Server(Ulid):
         return member
 
     @property
+    def me(self) -> Member:
+        """:class:`Member` Returns the member object of the client in the server"""
+        return self._members[self.state.me.id]
+
+    @property
     def roles(self) -> list[Role]:
         """list[:class:`Role`] Gets all roles in the server in descending order"""
         return list(self._roles.values())
