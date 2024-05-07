@@ -49,7 +49,6 @@ class SystemMessages:
             return
 
         channel = self.state.get_channel(self.user_joined_id)
-        assert isinstance(channel, TextChannel)
         return channel
 
     @property
@@ -65,7 +64,6 @@ class SystemMessages:
             return
 
         channel = self.state.get_channel(self.user_left_id)
-        assert isinstance(channel, TextChannel)
         return channel
 
     @property
@@ -81,7 +79,6 @@ class SystemMessages:
             return
 
         channel = self.state.get_channel(self.user_kicked_id)
-        assert isinstance(channel, TextChannel)
         return channel
 
     @property
@@ -97,7 +94,6 @@ class SystemMessages:
             return
 
         channel = self.state.get_channel(self.user_banned_id)
-        assert isinstance(channel, TextChannel)
         return channel
 
 
